@@ -4,11 +4,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 
 // Register Service Worker for PWA/Offline functionality
-if ('serviceWorker' in navigator) {
+// Added origin check to prevent registration errors on restricted domains (like development proxies)
+if ('serviceWorker' in navigator && window.location.origin.indexOf('localhost') !== -1 || window.location.protocol === 'https:') {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.error('ServiceWorker registration failed: ', err);
-    });
+    // We use a relative path to ensure the origin matches
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('ServiceWorker registered with scope: ', reg.scope))
+      .catch((err) => {
+        // Log locally but don't break the app
+        console.warn('PWA ServiceWorker registration skipped or failed:', err.message);
+      });
   });
 }
 
