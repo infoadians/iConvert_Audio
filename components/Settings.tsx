@@ -10,23 +10,31 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ options, setOptions, t }) => {
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-sm space-y-8 transition-colors">
-      <div className="flex items-center space-x-3">
-        <div className="w-8 h-8 bg-slate-50 dark:bg-zinc-800 rounded-lg flex items-center justify-center shrink-0">
-          <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" /></svg>
-        </div>
-        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-zinc-400">{t.controlCenter}</h3>
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
+      <div className="flex items-center gap-2 mb-6">
+        <svg width="18" height="18" className="text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+        </svg>
+        <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{t.controlCenter}</h3>
       </div>
 
       <div className="space-y-6">
         <div>
-          <label className="text-[10px] font-black text-slate-400 dark:text-zinc-600 uppercase tracking-widest mb-3 block">{t.bitrate}</label>
+          <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2 uppercase tracking-wide">
+            {t.bitrate}
+          </label>
           <div className="grid grid-cols-1 gap-2">
             {BITRATE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setOptions({ ...options, bitrate: opt.value })}
-                className={`text-left px-4 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${options.bitrate === opt.value ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-transparent border-slate-100 dark:border-zinc-800 text-slate-400 hover:border-indigo-200'}`}
+                className={`
+                  w-full text-left px-3 py-2.5 rounded-md text-sm transition-all border
+                  ${options.bitrate === opt.value 
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 font-medium' 
+                    : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                  }
+                `}
               >
                 {opt.label}
               </button>
@@ -35,26 +43,26 @@ export const Settings: React.FC<SettingsProps> = ({ options, setOptions, t }) =>
         </div>
 
         <div>
-          <label className="text-[10px] font-black text-slate-400 dark:text-zinc-600 uppercase tracking-widest mb-3 block">{t.frequency}</label>
+          <label className="block text-xs font-medium text-zinc-500 dark:text-zinc-400 mb-2 uppercase tracking-wide">
+            {t.frequency}
+          </label>
           <div className="flex gap-2">
             {SAMPLE_RATE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setOptions({ ...options, sampleRate: opt.value })}
-                className={`flex-1 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border transition-all ${options.sampleRate === opt.value ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-transparent border-slate-100 dark:border-zinc-800 text-slate-400 hover:border-indigo-200'}`}
+                className={`
+                  flex-1 px-3 py-2 rounded-md text-sm transition-all border
+                  ${options.sampleRate === opt.value 
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 border-zinc-900 dark:border-zinc-100 font-medium' 
+                    : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                  }
+                `}
               >
                 {opt.label.split(' ')[0]}
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="p-4 bg-indigo-50/50 dark:bg-indigo-950/20 rounded-xl border border-indigo-100 dark:border-indigo-900/30">
-          <div className="flex items-center space-x-2 mb-2">
-            <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <h4 className="text-[9px] font-black text-indigo-500 uppercase tracking-widest">{t.smartTip}</h4>
-          </div>
-          <p className="text-[10px] leading-relaxed text-indigo-700/70 dark:text-indigo-300/60 font-medium italic">{t.tipText}</p>
         </div>
       </div>
     </div>
