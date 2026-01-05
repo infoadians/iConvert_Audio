@@ -1,0 +1,18 @@
+
+{
+  "name": "iConvert Audio",
+  "short_name": "iConvert",
+  "description": "Professional iPhone audio to MP3 converter",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/727/727218.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
