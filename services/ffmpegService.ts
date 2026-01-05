@@ -22,20 +22,27 @@ export class FFmpegManager {
   public async load(): Promise<void> {
     if (this.isLoaded) return;
 
-    // Use a reliable CDN and fetch all components as Blob URLs to bypass cross-origin restrictions
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+    // jsdelivr is highly reliable for COEP/COOP environments
+    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm';
     
     try {
+      // We load assets in parallel to improve startup speed
+      const [coreURL, wasmURL, workerURL] = await Promise.all([
+        toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript')
+      ]);
+
       await this.ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-        // Explicitly providing the worker URL as a blob prevents the origin mismatch error
-        workerURL: await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript'),
+        coreURL,
+        wasmURL,
+        workerURL,
       });
+      
       this.isLoaded = true;
     } catch (error) {
-      console.error('FFmpeg Load Error:', error);
-      throw error;
+      console.error('Detailed FFmpeg Load Error:', error);
+      throw new Error('Audio engine initialization failed. This is often due to network restrictions or an incompatible browser environment.');
     }
   }
 
@@ -46,8 +53,8 @@ export class FFmpegManager {
   ): Promise<{ url: string; name: string }> {
     if (!this.isLoaded) await this.load();
 
-    const inputName = 'input_' + file.name;
-    const outputName = file.name.replace(/\.[^/.]+$/, "") + ".mp3";
+    const inputName = 'input_' + file.name.replace(/\s+/g, '_');
+    const outputName = file.name.replace(/\.[^/.]+$/, "").replace(/\s+/g, '_') + ".mp3";
 
     const progressHandler = ({ progress }: { progress: number }) => {
       onProgress(progress);
@@ -69,10 +76,16 @@ export class FFmpegManager {
       await this.ffmpeg.exec(command);
 
       const data = await this.ffmpeg.readFile(outputName);
-      const url = URL.createObjectURL(new Blob([(data as any).buffer], { type: 'audio/mp3' }));
+      const blob = new Blob([(data as any).buffer], { type: 'audio/mp3' });
+      const url = URL.createObjectURL(blob);
 
-      await this.ffmpeg.deleteFile(inputName);
-      await this.ffmpeg.deleteFile(outputName);
+      // Clean up virtual file system
+      try {
+        await this.ffmpeg.deleteFile(inputName);
+        await this.ffmpeg.deleteFile(outputName);
+      } catch (e) {
+        console.warn('FS cleanup warning:', e);
+      }
 
       return { url, name: outputName };
     } catch (error) {

@@ -26,7 +26,7 @@ const App: React.FC = () => {
         setIsFFmpegLoaded(true);
       } catch (error: any) {
         console.error("Failed to load FFmpeg:", error);
-        setInitError(error.message || "Failed to load audio engine");
+        setInitError(error.message || "Failed to load audio engine. Please check your internet connection.");
       } finally {
         setIsInitializing(false);
       }
@@ -115,16 +115,15 @@ const App: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-black text-slate-900 mb-4">Engine Failed to Start</h2>
+            <h2 className="text-2xl font-black text-slate-900 mb-4">Engine Connection Lost</h2>
             <p className="text-slate-500 leading-relaxed mb-8 font-medium">
-              We encountered a security origin error ({initError}). This usually happens when browsing from restricted environments. 
-              Try opening the site directly in a new tab or modern browser.
+              We couldn't reach our processing core. This can happen if the network is unstable or headers are blocked. Error: <code className="bg-slate-100 px-2 py-1 rounded text-red-600">{initError}</code>
             </p>
             <button 
               onClick={() => window.location.reload()}
               className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg active:scale-95"
             >
-              Retry Connection
+              Force Engine Reload
             </button>
           </div>
         ) : (
@@ -215,7 +214,7 @@ const App: React.FC = () => {
             Studio Professional
           </p>
           <p className="text-[10px] text-slate-400 font-bold">
-            iConvert Audio, by Bella Labs, V1.3
+            iConvert Audio, by Bella Labs, V1.4
           </p>
           <div className="mt-8 grid grid-cols-2 gap-x-8 gap-y-2 text-[9px] font-bold text-slate-300 uppercase tracking-widest">
             <span>Serverless Processing</span>
