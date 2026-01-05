@@ -4,9 +4,10 @@ import React, { useState, useCallback } from 'react';
 interface DropZoneProps {
   onFilesAdded: (files: File[]) => void;
   compact?: boolean;
+  t: any;
 }
 
-export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact }) => {
+export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) => {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleDrag = useCallback((e: React.DragEvent) => {
@@ -43,11 +44,11 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact }) => 
       onDragLeave={handleDrag}
       onDrop={handleDrop}
       className={`
-        relative border-2 border-dashed rounded-3xl transition-all duration-300 group overflow-hidden
+        relative border-2 border-dashed rounded-[2rem] transition-all duration-500 group overflow-hidden
         ${compact ? 'p-6' : 'p-16 md:p-24'}
         ${isDragging 
-          ? 'border-indigo-600 bg-indigo-50/50 scale-[1.02] shadow-2xl shadow-indigo-100' 
-          : 'border-slate-200 bg-white hover:border-indigo-300 hover:shadow-xl hover:shadow-slate-200/50'
+          ? 'border-indigo-600 bg-indigo-50/20 dark:bg-indigo-900/10 scale-[1.01] shadow-2xl shadow-indigo-100 dark:shadow-none' 
+          : 'border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-indigo-300 dark:hover:border-indigo-500/50'
         }
       `}
     >
@@ -62,39 +63,38 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact }) => 
       <div className="flex flex-col items-center justify-center space-y-6 pointer-events-none relative z-0">
         <div className={`
           rounded-2xl flex items-center justify-center transition-all duration-500
-          ${compact ? 'w-12 h-12' : 'w-20 h-20'}
+          ${compact ? 'w-10 h-10' : 'w-16 h-16'}
           ${isDragging 
             ? 'bg-indigo-600 text-white rotate-12 scale-110' 
-            : 'bg-indigo-50 text-indigo-500 group-hover:scale-105 group-hover:-rotate-3'
+            : 'bg-indigo-50 dark:bg-zinc-800 text-indigo-500 group-hover:scale-110 group-hover:-rotate-3'
           }
         `}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={compact ? 'w-6 h-6' : 'w-10 h-10'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={compact ? 'w-5 h-5' : 'w-8 h-8'}>
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         </div>
         
         <div className="text-center">
-          <p className={`${compact ? 'text-base' : 'text-2xl'} font-extrabold text-slate-800 tracking-tight transition-all`}>
-            {isDragging ? 'Release to add audio' : 'Add more audio tracks'}
+          <p className={`${compact ? 'text-sm' : 'text-xl'} font-bold tracking-tight text-slate-800 dark:text-zinc-100`}>
+            {isDragging ? t.dropActive : t.dropTitle}
           </p>
           {!compact && (
-            <p className="text-sm text-slate-500 mt-2 font-medium max-w-xs mx-auto leading-relaxed">
-              Drag & drop your iPhone Voice Memos or high-res audio files here.
+            <p className="text-xs text-slate-500 dark:text-zinc-500 mt-2 font-medium max-w-[200px] mx-auto leading-relaxed">
+              {t.dropSubtitle}
             </p>
           )}
         </div>
 
         <div className={`
-          px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 shadow-sm transition-all
-          group-hover:border-indigo-200 group-hover:text-indigo-600 group-hover:shadow-md
+          px-5 py-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-zinc-400 shadow-sm
           ${compact ? 'hidden' : 'block'}
         `}>
-          Choose Files
+          {t.chooseFiles}
         </div>
       </div>
       
-      {/* Decorative background grid */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none -z-10" style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+      {/* Subtle grid pattern for texture */}
+      <div className="absolute inset-0 opacity-[0.02] pointer-events-none -z-10" style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 0)', backgroundSize: '30px 30px' }}></div>
     </div>
   );
 };
