@@ -9,6 +9,8 @@ export interface AudioFile {
   outputUrl?: string;
   outputName?: string;
   error?: string;
+  transcriptionStatus?: 'idle' | 'processing' | 'done' | 'error';
+  transcriptionResult?: string;
 }
 
 export interface ConversionOptions {

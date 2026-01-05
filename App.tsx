@@ -4,9 +4,11 @@ import { Header } from './components/Header';
 import { DropZone } from './components/DropZone';
 import { FileList } from './components/FileList';
 import { Settings } from './components/Settings';
+import { ApiKeyModal } from './components/ApiKeyModal';
 import { AudioFile, ConversionOptions } from './types';
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
+import { GoogleGenAI } from "@google/genai";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<AudioFile[]>([]);
@@ -19,6 +21,10 @@ const App: React.FC = () => {
   });
   const [lang, setLang] = useState<Language>('en');
   const [isDark, setIsDark] = useState(false);
+  
+  // API Key State
+  const [apiKey, setApiKey] = useState('');
+  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
 
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
@@ -26,14 +32,17 @@ const App: React.FC = () => {
   useEffect(() => {
     if (isDark) {
       document.documentElement.classList.add('dark');
-      document.body.style.backgroundColor = '#09090b'; // zinc-950
+      document.body.style.backgroundColor = '#09090b';
     } else {
       document.documentElement.classList.remove('dark');
-      document.body.style.backgroundColor = '#fafafa'; // zinc-50
+      document.body.style.backgroundColor = '#fafafa';
     }
   }, [isDark]);
 
   useEffect(() => {
+    const storedKey = localStorage.getItem('iconvert_gemini_key');
+    if (storedKey) setApiKey(storedKey);
+
     const init = async () => {
       try {
         await ffmpegManager.load();
@@ -47,6 +56,15 @@ const App: React.FC = () => {
     init();
   }, []);
 
+  const handleSaveKey = (key: string) => {
+    setApiKey(key);
+    if (key) {
+      localStorage.setItem('iconvert_gemini_key', key);
+    } else {
+      localStorage.removeItem('iconvert_gemini_key');
+    }
+  };
+
   const onFilesAdded = useCallback((newFiles: File[]) => {
     const audioFiles: AudioFile[] = newFiles.map(file => ({
       id: Math.random().toString(36).substring(7),
@@ -55,6 +73,7 @@ const App: React.FC = () => {
       size: file.size,
       status: 'pending',
       progress: 0,
+      transcriptionStatus: 'idle'
     }));
     setFiles(prev => [...prev, ...audioFiles]);
   }, []);
@@ -64,7 +83,7 @@ const App: React.FC = () => {
   }, []);
 
   const clearCompleted = useCallback(() => {
-    setFiles(prev => prev.filter(f => f.status !== 'completed'));
+    setFiles(prev => prev.filter(f => f.status !== 'completed' && f.transcriptionStatus !== 'done'));
   }, []);
 
   const startConversion = useCallback(async (id: string) => {
@@ -92,13 +111,99 @@ const App: React.FC = () => {
     files.forEach(file => { if (file.status === 'pending') startConversion(file.id); });
   }, [files, startConversion]);
 
+  // --- Transcription Logic ---
+
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+         const result = reader.result as string;
+         // Remove data URL prefix (e.g., "data:audio/mpeg;base64,")
+         const base64 = result.split(',')[1];
+         resolve(base64);
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const transcribeFile = async (id: string) => {
+    const targetFile = files.find(f => f.id === id);
+    if (!targetFile || !apiKey) return;
+
+    setFiles(prev => prev.map(f => 
+      f.id === id ? { ...f, transcriptionStatus: 'processing' } : f
+    ));
+
+    try {
+      const base64Data = await fileToBase64(targetFile.file);
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { inlineData: { mimeType: targetFile.file.type || 'audio/mp3', data: base64Data } },
+              { text: "please transcribe the attached audio, without adding or deleting any words, just add the proper punctuation grouping in short paragraphs, preferable of 3 or 4 sentences each" }
+            ]
+          }
+        ]
+      });
+
+      const text = response.text();
+      
+      setFiles(prev => prev.map(f => 
+        f.id === id ? { ...f, transcriptionStatus: 'done', transcriptionResult: text } : f
+      ));
+
+    } catch (err: any) {
+      console.error("Transcription Error", err);
+      setFiles(prev => prev.map(f => 
+        f.id === id ? { ...f, transcriptionStatus: 'error' } : f
+      ));
+    }
+  };
+
+  const downloadTranscript = (id: string, format: 'txt' | 'md') => {
+    const targetFile = files.find(f => f.id === id);
+    if (!targetFile || !targetFile.transcriptionResult) return;
+
+    const blob = new Blob([targetFile.transcriptionResult], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${targetFile.name.split('.')[0]}_transcript.${format}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const hasPending = files.some(f => f.status === 'pending');
   const hasFiles = files.length > 0;
 
   return (
     <div className="min-h-screen text-zinc-950 dark:text-zinc-50 font-sans selection:bg-indigo-500/30">
-      <Header lang={lang} setLang={setLang} isDark={isDark} setIsDark={setIsDark} t={t} />
+      <Header 
+        lang={lang} 
+        setLang={setLang} 
+        isDark={isDark} 
+        setIsDark={setIsDark} 
+        t={t} 
+        onOpenSettings={() => setIsKeyModalOpen(true)}
+        hasApiKey={!!apiKey}
+      />
       
+      <ApiKeyModal 
+        isOpen={isKeyModalOpen}
+        onClose={() => setIsKeyModalOpen(false)}
+        onSave={handleSaveKey}
+        currentKey={apiKey}
+        t={t}
+      />
+
       <main className="max-w-3xl mx-auto px-4 py-8 md:py-12 w-full">
         {isInitializing ? (
           <div className="flex flex-col items-center justify-center min-h-[50vh] animate-in fade-in duration-700">
@@ -149,7 +254,15 @@ const App: React.FC = () => {
                     </button>
                   </div>
                   <div className="max-h-[500px] overflow-y-auto custom-scrollbar">
-                    <FileList files={files} onRemove={removeFile} onConvert={startConversion} t={t} />
+                    <FileList 
+                      files={files} 
+                      onRemove={removeFile} 
+                      onConvert={startConversion} 
+                      onTranscribe={transcribeFile}
+                      onDownloadTranscript={downloadTranscript}
+                      hasApiKey={!!apiKey}
+                      t={t} 
+                    />
                   </div>
                 </div>
               )}

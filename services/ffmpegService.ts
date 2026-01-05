@@ -22,8 +22,8 @@ export class FFmpegManager {
   public async load(): Promise<void> {
     if (this.isLoaded) return;
 
-    // jsdelivr is highly reliable for COEP/COOP environments
-    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.6/dist/esm';
+    // Use 0.12.4 core which is the stable pair for 0.12.7 lib
+    const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.4/dist/esm';
     
     try {
       // We load assets in parallel to improve startup speed
@@ -53,8 +53,10 @@ export class FFmpegManager {
   ): Promise<{ url: string; name: string }> {
     if (!this.isLoaded) await this.load();
 
-    const inputName = 'input_' + file.name.replace(/\s+/g, '_');
-    const outputName = file.name.replace(/\.[^/.]+$/, "").replace(/\s+/g, '_') + ".mp3";
+    // Sanitize input name to be safe for ffmpeg virtual fs
+    const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+    const inputName = 'input_' + safeName;
+    const outputName = safeName.replace(/\.[^/.]+$/, "") + ".mp3";
 
     const progressHandler = ({ progress }: { progress: number }) => {
       onProgress(progress);
