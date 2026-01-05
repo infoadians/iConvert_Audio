@@ -24,56 +24,61 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
     }
   }, [onFilesAdded]);
 
+  if (compact) {
+    return (
+      <div 
+        onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}
+        className={`
+          relative group cursor-pointer p-4 flex items-center justify-center space-x-3 transition-colors
+          ${isDragging ? 'bg-indigo-50 dark:bg-indigo-900/20' : 'bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/50'}
+        `}
+      >
+         <input type="file" multiple accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4" onChange={(e) => e.target.files && onFilesAdded(Array.from(e.target.files))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+         <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 group-hover:scale-110 transition-transform">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+         </div>
+         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-200">
+           {isDragging ? t.dropActive : t.dropTitle}
+         </span>
+      </div>
+    );
+  }
+
   return (
     <div
       onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}
       className={`
-        relative group cursor-pointer
-        border-2 border-dashed rounded-xl transition-all duration-200 ease-in-out
-        ${compact ? 'py-8 px-6' : 'py-16 px-8 md:py-24'}
-        ${isDragging 
-          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-500/10' 
-          : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:border-zinc-400 dark:hover:border-zinc-600'
-        }
+        relative group cursor-pointer flex flex-col items-center justify-center text-center
+        transition-all duration-300 ease-out
+        py-20 px-8
+        ${isDragging ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : 'bg-white dark:bg-zinc-900'}
       `}
     >
-      <input 
-        type="file" 
-        multiple 
-        accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4" 
-        onChange={(e) => e.target.files && onFilesAdded(Array.from(e.target.files))} 
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
-      />
+      <input type="file" multiple accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4" onChange={(e) => e.target.files && onFilesAdded(Array.from(e.target.files))} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
       
-      <div className="flex flex-col items-center justify-center text-center pointer-events-none">
-        <div className={`
-          rounded-full flex items-center justify-center transition-all duration-200 mb-4
-          ${compact ? 'w-10 h-10' : 'w-14 h-14'}
-          ${isDragging 
-            ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400' 
-            : 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 group-hover:scale-110 group-hover:text-zinc-900 dark:group-hover:text-zinc-100'
-          }
-        `}>
-          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
-          </svg>
-        </div>
-        
-        <h3 className={`font-semibold text-zinc-900 dark:text-zinc-100 ${compact ? 'text-sm' : 'text-lg'}`}>
-          {isDragging ? t.dropActive : t.dropTitle}
-        </h3>
-        
-        {!compact && (
-          <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400 max-w-sm mx-auto">
-            {t.dropSubtitle}
-          </p>
-        )}
-        
-        {!compact && (
-           <div className="mt-6 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-medium rounded-md shadow-sm group-hover:opacity-90 transition-opacity">
-            {t.chooseFiles}
-           </div>
-        )}
+      <div className={`
+        w-20 h-20 rounded-3xl bg-zinc-50 dark:bg-zinc-800/50 mb-6 flex items-center justify-center 
+        group-hover:scale-105 group-hover:shadow-lg transition-all duration-300 border border-zinc-100 dark:border-zinc-800
+        ${isDragging ? 'scale-110 border-indigo-200 ring-4 ring-indigo-50' : ''}
+      `}>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="text-zinc-400 dark:text-zinc-500 group-hover:text-indigo-500 transition-colors">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        </svg>
+      </div>
+
+      <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2 tracking-tight">
+        {isDragging ? t.dropActive : t.dropTitle}
+      </h3>
+      <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-xs leading-relaxed">
+        {t.dropSubtitle}
+      </p>
+      
+      <div className="mt-8">
+        <span className="px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-xs font-bold uppercase tracking-widest rounded-lg shadow-xl shadow-zinc-200 dark:shadow-none group-hover:translate-y-[-2px] transition-transform inline-block">
+          {t.chooseFiles}
+        </span>
       </div>
     </div>
   );

@@ -19,78 +19,59 @@ const formatSize = (bytes: number) => {
 
 export const FileList: React.FC<FileListProps> = ({ files, onRemove, onConvert, t }) => {
   return (
-    <div className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
+    <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
       {files.map((item) => (
-        <div key={item.id} className="p-4 flex items-center justify-between group bg-white dark:bg-zinc-900 transition-colors">
-          <div className="flex items-center gap-4 min-w-0">
-            <div className={`
-              w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border
-              ${item.status === 'completed' 
-                ? 'bg-green-50 border-green-100 text-green-600 dark:bg-green-900/10 dark:border-green-900/20 dark:text-green-400' 
-                : 'bg-zinc-50 border-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:border-zinc-700/50 dark:text-zinc-500'}
-            `}>
-              <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-              </svg>
-            </div>
-            
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate max-w-[200px] sm:max-w-xs">{item.name}</h4>
-              </div>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">{formatSize(item.size)}</span>
-                <span className="text-[10px] text-zinc-300 dark:text-zinc-600">•</span>
-                <span className={`text-xs font-medium ${
-                  item.status === 'completed' ? 'text-green-600 dark:text-green-400' :
-                  item.status === 'error' ? 'text-red-600 dark:text-red-400' :
-                  item.status === 'converting' ? 'text-indigo-600 dark:text-indigo-400' :
-                  'text-zinc-500'
-                }`}>
-                  {t[item.status]}
-                </span>
-              </div>
+        <div key={item.id} className="group flex items-center p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors">
+          
+          {/* Status Icon */}
+          <div className="shrink-0 mr-4">
+             {item.status === 'completed' ? (
+               <div className="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center text-green-600 dark:text-green-400">
+                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+               </div>
+             ) : item.status === 'converting' ? (
+               <div className="w-8 h-8 rounded-full border-2 border-indigo-100 border-t-indigo-500 animate-spin"></div>
+             ) : item.status === 'error' ? (
+                <div className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center text-red-600 dark:text-red-400">
+                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+               </div>
+             ) : (
+               <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-400">
+                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+               </div>
+             )}
+          </div>
+
+          {/* File Info */}
+          <div className="flex-1 min-w-0 mr-4">
+            <h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">{item.name}</h4>
+            <div className="flex items-center space-x-2 mt-0.5">
+              <span className="text-[10px] font-mono text-zinc-400">{formatSize(item.size)}</span>
+              {item.status === 'converting' && (
+                <div className="h-1 w-16 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500 transition-all duration-300" style={{ width: `${item.progress}%` }}></div>
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
-            {item.status === 'pending' && (
-              <button 
-                onClick={() => onConvert(item.id)}
-                className="hidden sm:inline-flex px-3 py-1.5 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs font-medium rounded-md hover:opacity-90 transition-opacity"
-              >
-                {t.start}
-              </button>
-            )}
-
-            {item.status === 'converting' && (
-              <div className="flex flex-col items-end gap-1">
-                <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400">{item.progress}%</span>
-                <div className="w-16 h-1 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${item.progress}%` }} />
-                </div>
-              </div>
-            )}
-
+          {/* Actions */}
+          <div className="flex items-center space-x-2">
             {item.status === 'completed' && item.outputUrl && (
               <a 
                 href={item.outputUrl} 
                 download={item.outputName}
-                className="p-2 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors"
-                title={t.download}
+                className="px-3 py-1.5 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold uppercase tracking-wider rounded-md hover:opacity-90 transition-opacity"
               >
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M12 12.75l4.5-4.5m-4.5 4.5l-4.5-4.5M12 12.75V3" />
-                </svg>
+                {t.download}
               </a>
             )}
-
+            
             <button 
               onClick={() => onRemove(item.id)}
-              className="p-2 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-md transition-colors"
-              title={t.clear}
+              className="p-1.5 text-zinc-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-md transition-colors"
             >
-              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
