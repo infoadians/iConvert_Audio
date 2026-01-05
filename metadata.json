@@ -1,0 +1,5 @@
+{
+  "name": "iConvert Audio",
+  "description": "A professional-grade PWA for converting iPhone audio recordings (M4A, WAV, Opus) to high-quality MP3 files directly in your browser.",
+  "requestFramePermissions": []
+}
