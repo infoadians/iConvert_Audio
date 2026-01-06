@@ -4,9 +4,9 @@ import { Header } from './components/Header';
 import { DropZone } from './components/DropZone';
 import { FileList } from './components/FileList';
 
-import { ApiKeyModal } from './components/ApiKeyModal';
+import { SettingsModal } from './components/SettingsModal';
 import { TranscriptModal } from './components/TranscriptModal';
-import { AudioFile, ConversionOptions } from './types';
+import { AudioFile, ConversionOptions, ProcessTemplate } from './types';
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { GoogleGenAI } from "@google/genai";
@@ -27,12 +27,16 @@ const App: React.FC = () => {
   // Theme Color
   const [primaryHue, setPrimaryHue] = useState(249); // Default Indigo
 
-  // API Key State
+  // API Key & Settings Modal State
   const [apiKey, setApiKey] = useState('');
-  const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Process Templates
+  const [templates, setTemplates] = useState<ProcessTemplate[]>([]);
 
   // Transcript Modal State
   const [viewingTranscript, setViewingTranscript] = useState<{ name: string, content: string } | null>(null);
+  const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
 
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
@@ -55,6 +59,15 @@ const App: React.FC = () => {
     const storedKey = localStorage.getItem('iconvert_gemini_key');
     if (storedKey) setApiKey(storedKey);
 
+    const storedTemplates = localStorage.getItem('iconvert_templates');
+    if (storedTemplates) {
+      try {
+        setTemplates(JSON.parse(storedTemplates));
+      } catch (e) {
+        console.error("Error parsing templates", e);
+      }
+    }
+
     const init = async () => {
       try {
         await ffmpegManager.load();
@@ -75,6 +88,11 @@ const App: React.FC = () => {
     } else {
       localStorage.removeItem('iconvert_gemini_key');
     }
+  };
+
+  const handleSaveTemplates = (newTemplates: ProcessTemplate[]) => {
+    setTemplates(newTemplates);
+    localStorage.setItem('iconvert_templates', JSON.stringify(newTemplates));
   };
 
   const onFilesAdded = useCallback((newFiles: File[]) => {
@@ -122,6 +140,7 @@ const App: React.FC = () => {
   const convertAll = useCallback(() => {
     files.forEach(file => { if (file.status === 'pending') startConversion(file.id); });
   }, [files, startConversion]);
+
 
   // --- Transcription Logic ---
 
@@ -178,6 +197,34 @@ const App: React.FC = () => {
     }
   };
 
+  const handleProcessText = async (template: ProcessTemplate) => {
+    if (!viewingTranscript || !apiKey) return;
+    setIsProcessingTranscript(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey });
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash-exp',
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { text: `Background Text:\n${viewingTranscript.content}\n\nTask: ${template.prompt}` }
+            ]
+          }
+        ]
+      });
+      setViewingTranscript(prev => prev ? { ...prev, content: response.text } : null);
+    } catch (err) {
+      console.error("Processing Error", err);
+    } finally {
+      setIsProcessingTranscript(false);
+    }
+  };
+
+  const transcribeAll = useCallback(() => {
+    files.forEach(file => { if (file.status === 'pending' || (file.status === 'completed' && (!file.transcriptionStatus || file.transcriptionStatus === 'idle'))) transcribeFile(file.id); });
+  }, [files, apiKey, transcribeFile]);
+
   const downloadTranscript = (id: string, format: 'txt' | 'md') => {
     const targetFile = files.find(f => f.id === id);
     if (!targetFile || !targetFile.transcriptionResult) return;
@@ -210,22 +257,24 @@ const App: React.FC = () => {
   return (
     <div className="app-container">
       <Header
+        t={t}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        hasApiKey={!!apiKey}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
         lang={lang}
         setLang={setLang}
         isDark={isDark}
         setIsDark={setIsDark}
-        t={t}
-        onOpenSettings={() => setIsKeyModalOpen(true)}
-        hasApiKey={!!apiKey}
         primaryHue={primaryHue}
         setPrimaryHue={setPrimaryHue}
-      />
-
-      <ApiKeyModal
-        isOpen={isKeyModalOpen}
-        onClose={() => setIsKeyModalOpen(false)}
-        onSave={handleSaveKey}
-        currentKey={apiKey}
+        apiKey={apiKey}
+        onSaveKey={handleSaveKey}
+        templates={templates}
+        onSaveTemplates={handleSaveTemplates}
         t={t}
       />
 
@@ -234,6 +283,9 @@ const App: React.FC = () => {
         onClose={() => setViewingTranscript(null)}
         fileName={viewingTranscript?.name || ''}
         content={viewingTranscript?.content || ''}
+        templates={templates}
+        onProcess={handleProcessText}
+        isProcessing={isProcessingTranscript}
         t={t}
       />
 
@@ -279,12 +331,6 @@ const App: React.FC = () => {
                       <span className="queue-label">{t.queue}</span>
                       <span className="queue-count">{files.length}</span>
                     </div>
-                    <button
-                      onClick={clearCompleted}
-                      className="btn-clear"
-                    >
-                      {t.clear}
-                    </button>
                   </div>
                   <div className="file-list-container">
                     <FileList
@@ -303,13 +349,20 @@ const App: React.FC = () => {
 
               {/* Bottom Section: Controls & Actions */}
               <div className="controls-section">
-                <div className="action-row">
+                <div className="batch-actions">
                   <button
                     onClick={convertAll}
                     disabled={!hasPending}
                     className="btn-primary"
                   >
-                    {hasPending ? t.runProcess : t.start}
+                    {t.convertToMp3}
+                  </button>
+                  <button
+                    onClick={transcribeAll}
+                    disabled={!hasPending && !files.some(f => f.status === 'completed' && f.transcriptionStatus === 'idle')}
+                    className="btn-primary"
+                  >
+                    {t.transcribeToText}
                   </button>
                 </div>
               </div>

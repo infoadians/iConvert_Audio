@@ -982,3 +982,193 @@ input {
     background: var(--color-bg-sub);
     color: var(--color-text-main);
 }
+
+/* Settings Modal Styles */
+.settings-section {
+    margin-bottom: 2rem;
+}
+
+.settings-subtitle {
+    font-size: 0.875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.settings-desc {
+    font-size: 0.875rem;
+    opacity: 0.8;
+    margin-bottom: 1rem;
+}
+
+.settings-input {
+    width: 100%;
+    background: rgba(var(--color-bg), 0.05);
+    border: 1px solid var(--color-border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: inherit;
+}
+
+.settings-select {
+    background: var(--color-bg-sub);
+    border: 1px solid var(--color-border);
+    border-radius: 0.4rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    color: inherit;
+}
+
+.settings-btn-primary {
+    background: var(--color-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.settings-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px var(--color-primary-fade);
+}
+
+.settings-btn-secondary {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: var(--color-bg-sub);
+    transition: all 0.2s;
+}
+
+.settings-link {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.settings-link:hover {
+    text-decoration: underline;
+}
+
+/* Templates */
+.template-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.template-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--color-bg-sub);
+    border-radius: 0.75rem;
+    border: 1px solid var(--color-border);
+}
+
+.template-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.icon-btn-small {
+    padding: 0.4rem;
+    border-radius: 0.4rem;
+    opacity: 0.6;
+    transition: all 0.2s;
+    display: flex;
+}
+
+.icon-btn-small:hover {
+    opacity: 1;
+    background: var(--color-bg);
+}
+
+/* Toggle Switch */
+.toggle-btn {
+    width: 2.75rem;
+    height: 1.5rem;
+    background: var(--color-border);
+    border-radius: 1rem;
+    position: relative;
+    transition: background 0.3s;
+}
+
+.toggle-btn.active {
+    background: var(--color-primary);
+}
+
+.toggle-slider {
+    position: absolute;
+    width: 1.125rem;
+    height: 1.125rem;
+    background: white;
+    border-radius: 50%;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toggle-btn.active .toggle-slider {
+    transform: translateX(1.25rem);
+}
+
+/* Batch Actions Layout */
+.batch-actions {
+    display: flex;
+    gap: 1.5rem;
+    width: 100%;
+}
+
+.batch-actions .btn-primary {
+    flex: 1;
+    padding: 1.25rem 1rem;
+}
+
+/* Process Menu in Transcript */
+.process-menu-container {
+    position: relative;
+}
+
+.process-dropdown {
+    position: absolute;
+    bottom: 120%;
+    right: 0;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    min-width: 200px;
+    z-index: 100;
+    padding: 0.5rem;
+    box-shadow: var(--shadow-lg);
+    animation: scaleIn 0.2s ease;
+}
+
+.process-item {
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border-radius: 0.6rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    color: var(--color-text-main);
+}
+
+.process-item:hover {
+    background: var(--color-bg-sub);
+    color: var(--color-primary);
+}

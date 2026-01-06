@@ -29,3 +29,9 @@ export const SAMPLE_RATE_OPTIONS = [
   { label: '44.1 kHz (CD Quality)', value: '44100' },
   { label: '48 kHz (Professional)', value: '48000' },
 ];
+
+export interface ProcessTemplate {
+  id: string;
+  name: string;
+  prompt: string;
+}
