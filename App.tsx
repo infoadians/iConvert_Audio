@@ -303,6 +303,10 @@ const App: React.FC = () => {
         t={t}
         onOpenSettings={() => setIsSettingsOpen(true)}
         hasApiKey={!!apiKey}
+        lang={lang}
+        setLang={setLang}
+        isDark={isDark}
+        setIsDark={setIsDark}
       />
 
       <SettingsModal
@@ -475,7 +479,7 @@ const App: React.FC = () => {
             {/* Footer / Tip */}
             <div className="footer-tip animate-fade-in">
               <p>
-                iConvert Audio, by Bella Labs, V0.1.1
+                iConvert Audio, by Bella Labs, V0.1.2
               </p>
             </div>
 
