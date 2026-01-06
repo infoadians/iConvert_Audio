@@ -36,3 +36,11 @@ export interface ProcessTemplate {
   name: string;
   prompt: string;
 }
+
+export interface ProcessedResult {
+  id: string;
+  audioFileName: string;
+  templateName: string;
+  result: string;
+  timestamp: number;
+}

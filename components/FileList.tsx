@@ -1,16 +1,19 @@
 
 import React from 'react';
-import { AudioFile } from '../types';
+import { AudioFile, ProcessedResult } from '../types';
 
 interface FileListProps {
-  files: AudioFile[];
-  onRemove: (id: string) => void;
-  onConvert: (id: string) => void;
-  onTranscribe: (id: string) => void;
-  onDownloadTranscript: (id: string, format: 'txt' | 'md') => void;
-  onViewTranscript: (id: string) => void;
+  files?: AudioFile[];
+  processedResults?: ProcessedResult[];
+  onRemove: (id: string, type?: 'audio' | 'processed') => void;
+  onConvert?: (id: string) => void;
+  onTranscribe?: (id: string) => void;
+  onDownloadTranscript?: (id: string, format: 'txt' | 'md') => void;
+  onViewTranscript?: (id: string) => void;
+  onViewProcessed?: (id: string) => void;
   hasApiKey: boolean;
   t: any;
+  type: 'queue' | 'transcribed' | 'processed';
 }
 
 const formatSize = (bytes: number) => {
@@ -29,8 +32,55 @@ const formatDuration = (seconds?: number) => {
 };
 
 export const FileList: React.FC<FileListProps> = ({
-  files, onRemove, onConvert, onTranscribe, onDownloadTranscript, onViewTranscript, hasApiKey, t
+  files = [],
+  processedResults = [],
+  onRemove,
+  onConvert,
+  onTranscribe,
+  onDownloadTranscript,
+  onViewTranscript,
+  onViewProcessed,
+  hasApiKey,
+  t,
+  type
 }) => {
+  if (type === 'processed') {
+    return (
+      <div className="file-list-group">
+        {processedResults.map((item) => (
+          <div key={item.id} className="file-item glass-card-hover">
+            <div className="file-item-left">
+              <div className="file-icon-box completed">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="file-info">
+                <h4 className="file-name truncate" style={{ maxWidth: '200px' }}>{item.audioFileName}</h4>
+                <div className="file-meta-row">
+                  <span className="status-badge processing">{item.templateName}</span>
+                </div>
+              </div>
+            </div>
+            <div className="file-actions">
+              <button
+                onClick={() => onViewProcessed && onViewProcessed(item.id)}
+                className="action-btn-secondary"
+              >
+                {t.view || 'View'}
+              </button>
+              <button onClick={() => onRemove(item.id, 'processed')} className="remove-btn" title="Remove Result">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="file-list-group">
       {files.map((item) => (
@@ -86,44 +136,51 @@ export const FileList: React.FC<FileListProps> = ({
 
           {/* Actions */}
           <div className="file-actions">
-
-            {/* Download Converted Audio */}
-            {item.status === 'completed' && item.outputUrl && (
-              <a
-                href={item.outputUrl}
-                download={item.outputName}
-                className="action-btn download wobble-hover"
-                title="Download MP3"
-              >
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                {t.download}
-              </a>
-            )}
-
-            {/* AI Transcription Actions */}
-            {hasApiKey && item.status !== 'converting' && item.transcriptionStatus !== 'processing' && (
+            {type === 'queue' && (
               <>
-                {item.transcriptionStatus === 'done' ? (
-                  <>
-                    <button onClick={() => onViewTranscript(item.id)} className="action-btn transcribe-view" title="View Transcript">
-                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </button>
-                    <button onClick={() => onDownloadTranscript(item.id, 'txt')} className="action-btn secondary " title="Download Transcript">
-                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                    </button>
-                  </>
-                ) : null}
+                {item.status === 'pending' && onConvert && (
+                  <button onClick={() => onConvert(item.id)} className="action-btn-secondary">
+                    {t.convert}
+                  </button>
+                )}
+                {item.status === 'completed' && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && (
+                  <button onClick={() => onTranscribe(item.id)} className="action-btn-secondary" disabled={item.transcriptionStatus === 'processing'}>
+                    {item.transcriptionStatus === 'processing' ? t.processing : t.transcribe}
+                  </button>
+                )}
+                {item.status === 'completed' && item.outputUrl && (
+                  <a
+                    href={item.outputUrl}
+                    download={item.outputName}
+                    className="action-btn-icon wobble-hover"
+                    title="Download MP3"
+                  >
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                  </a>
+                )}
               </>
             )}
 
-            <button onClick={() => onRemove(item.id)} className="remove-btn" title="Remove File">
+            {type === 'transcribed' && (
+              <>
+                {onViewTranscript && (
+                  <button onClick={() => onViewTranscript(item.id)} className="action-btn-secondary">
+                    {t.view || 'View'}
+                  </button>
+                )}
+                {onDownloadTranscript && (
+                  <button onClick={() => onDownloadTranscript(item.id, 'txt')} className="action-btn-icon" title="Download Transcript">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                  </button>
+                )}
+              </>
+            )}
+
+            <button onClick={() => onRemove(item.id, 'audio')} className="remove-btn" title="Remove File">
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -134,3 +191,4 @@ export const FileList: React.FC<FileListProps> = ({
     </div>
   );
 };
+

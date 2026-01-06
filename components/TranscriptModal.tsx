@@ -15,6 +15,7 @@ interface TranscriptModalProps {
 export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     isOpen, onClose, fileName, content, templates, onProcess, isProcessing, t
 }) => {
+    const [fontSize, setFontSize] = useState(14);
     const [copied, setCopied] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -41,26 +42,43 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-card">
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal-card full-width" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
                     <div className="modal-title-group">
                         <h3 className="modal-title">{fileName}</h3>
                     </div>
-                    <button onClick={onClose} className="modal-close-btn">
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <div className="font-controls">
+                            <button
+                                className="font-btn"
+                                onClick={() => setFontSize(f => Math.max(10, f - 2))}
+                                title="Decrease text size"
+                            >−</button>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 'bold', minWidth: '30px', textAlign: 'center' }}>{fontSize}px</span>
+                            <button
+                                className="font-btn"
+                                onClick={() => setFontSize(f => Math.min(32, f + 2))}
+                                title="Increase text size"
+                            >+</button>
+                        </div>
+                        <button onClick={onClose} className="modal-close-btn">
+                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
-                <div className="relative mb-6 flex-1 min-h-0">
-                    <textarea
-                        readOnly
-                        value={isProcessing ? t.processing : content}
-                        className={`w-full h-full p-4 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm font-mono leading-relaxed resize-none focus:outline-none text-zinc-800 dark:text-zinc-200 ${isProcessing ? 'animate-pulse' : ''}`}
-                        style={{ minHeight: '300px' }}
-                    />
+                <div className="modal-body">
+                    <div className="relative flex-1 min-h-0 flex flex-col">
+                        <textarea
+                            readOnly
+                            value={isProcessing ? t.processing : content}
+                            className={`w-full flex-1 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 font-mono leading-relaxed resize-none focus:outline-none text-zinc-800 dark:text-zinc-200 ${isProcessing ? 'animate-pulse' : ''}`}
+                            style={{ fontSize: `${fontSize}px` }}
+                        />
+                    </div>
                 </div>
 
                 <div className="modal-actions">
@@ -73,6 +91,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2-2 0 00-2-2M5 11V9a2-2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
                             <span>{t.process}</span>
                         </button>
+
 
                         {isMenuOpen && (
                             <div className="process-dropdown">

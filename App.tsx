@@ -6,7 +6,7 @@ import { FileList } from './components/FileList';
 
 import { SettingsModal } from './components/SettingsModal';
 import { TranscriptModal } from './components/TranscriptModal';
-import { AudioFile, ConversionOptions, ProcessTemplate } from './types';
+import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult } from './types';
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { GoogleGenAI } from "@google/genai";
@@ -35,8 +35,12 @@ const App: React.FC = () => {
   const [templates, setTemplates] = useState<ProcessTemplate[]>([]);
 
   // Transcript Modal State
-  const [viewingTranscript, setViewingTranscript] = useState<{ name: string, content: string } | null>(null);
+  const [viewingTranscript, setViewingTranscript] = useState<{ id: string, name: string, content: string } | null>(null);
   const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
+
+  // Processed Results State
+  const [processedResults, setProcessedResults] = useState<ProcessedResult[]>([]);
+  const [viewingProcessed, setViewingProcessed] = useState<ProcessedResult | null>(null);
 
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
@@ -124,8 +128,12 @@ const App: React.FC = () => {
     setFiles(prev => [...prev, ...audioFiles]);
   }, []);
 
-  const removeFile = useCallback((id: string) => {
-    setFiles(prev => prev.filter(f => f.id !== id));
+  const removeFile = useCallback((id: string, type: 'audio' | 'processed' = 'audio') => {
+    if (type === 'audio') {
+      setFiles(prev => prev.filter(f => f.id !== id));
+    } else {
+      setProcessedResults(prev => prev.filter(r => r.id !== id));
+    }
   }, []);
 
   const clearCompleted = useCallback(() => {
@@ -229,13 +237,25 @@ const App: React.FC = () => {
           }
         ]
       });
-      setViewingTranscript(prev => prev ? { ...prev, content: response.text } : null);
+
+      const newResult: ProcessedResult = {
+        id: Math.random().toString(36).substring(7),
+        audioFileName: viewingTranscript.name,
+        templateName: template.name,
+        result: response.text,
+        timestamp: Date.now()
+      };
+
+      setProcessedResults(prev => [newResult, ...prev]);
+      setViewingTranscript(null); // Close transcript modal
+      setViewingProcessed(newResult); // Open processed result viewer
     } catch (err) {
       console.error("Processing Error", err);
     } finally {
       setIsProcessingTranscript(false);
     }
   };
+
 
   const transcribeAll = useCallback(() => {
     files.forEach(file => { if (file.status === 'pending' || (file.status === 'completed' && (!file.transcriptionStatus || file.transcriptionStatus === 'idle'))) transcribeFile(file.id); });
@@ -261,11 +281,18 @@ const App: React.FC = () => {
     const targetFile = files.find(f => f.id === id);
     if (targetFile && targetFile.transcriptionResult) {
       setViewingTranscript({
+        id: targetFile.id,
         name: targetFile.name,
         content: targetFile.transcriptionResult
       });
     }
   };
+
+  const handleViewProcessed = (id: string) => {
+    const result = processedResults.find(r => r.id === id);
+    if (result) setViewingProcessed(result);
+  };
+
 
   const hasPending = files.some(f => f.status === 'pending');
   const hasFiles = files.length > 0;
@@ -305,6 +332,19 @@ const App: React.FC = () => {
         t={t}
       />
 
+      {/* Processed Result Viewer */}
+      <TranscriptModal
+        isOpen={!!viewingProcessed}
+        onClose={() => setViewingProcessed(null)}
+        fileName={`${viewingProcessed?.audioFileName} • ${viewingProcessed?.templateName}`}
+        content={viewingProcessed?.result || ''}
+        templates={[]}
+        onProcess={() => { }}
+        isProcessing={false}
+        t={t}
+      />
+
+
       <main className="main-content">
         {isInitializing ? (
           <div className="state-container animate-fade-in">
@@ -339,57 +379,106 @@ const App: React.FC = () => {
                 <DropZone onFilesAdded={onFilesAdded} compact={hasFiles} t={t} />
               </div>
 
-              {/* Middle Section: Queue */}
+              {/* Middle Section: Multiple Lists */}
               {hasFiles && (
-                <div className="queue-section animate-fade-in">
-                  <div className="queue-header">
-                    <div className="queue-title-group">
-                      <span className="queue-label">{t.queue}</span>
-                      <span className="queue-count">{files.length}</span>
+                <div className="content-lists-container animate-fade-in">
+
+                  {/* List 1: Queue */}
+                  {files.some(f => f.transcriptionStatus !== 'done') && (
+                    <div className="queue-section mb-8">
+                      <div className="queue-header mb-2">
+                        <div className="queue-title-group">
+                          <span className="queue-label">{t.queue || 'Queue'}</span>
+                          <span className="queue-count">{files.filter(f => f.transcriptionStatus !== 'done').length}</span>
+                        </div>
+                      </div>
+                      <FileList
+                        files={files.filter(f => f.transcriptionStatus !== 'done')}
+                        onRemove={removeFile}
+                        onConvert={startConversion}
+                        onTranscribe={transcribeFile}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="queue"
+                      />
                     </div>
-                  </div>
-                  <div className="file-list-container">
-                    <FileList
-                      files={files}
-                      onRemove={removeFile}
-                      onConvert={startConversion}
-                      onTranscribe={transcribeFile}
-                      onDownloadTranscript={downloadTranscript}
-                      onViewTranscript={handleViewTranscript}
-                      hasApiKey={!!apiKey}
-                      t={t}
-                    />
-                  </div>
+                  )}
+
+                  {/* List 2: Transcribed Audios */}
+                  {files.some(f => f.transcriptionStatus === 'done') && (
+                    <div className="transcribed-section mb-8">
+                      <div className="queue-header mb-2">
+                        <div className="queue-title-group">
+                          <span className="queue-label">Transcribed Audios</span>
+                          <span className="queue-count">{files.filter(f => f.transcriptionStatus === 'done').length}</span>
+                        </div>
+                      </div>
+                      <FileList
+                        files={files.filter(f => f.transcriptionStatus === 'done')}
+                        onRemove={removeFile}
+                        onViewTranscript={handleViewTranscript}
+                        onDownloadTranscript={downloadTranscript}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="transcribed"
+                      />
+                    </div>
+                  )}
+
+                  {/* List 3: Processed Results */}
+                  {processedResults.length > 0 && (
+                    <div className="processed-section mb-8">
+                      <div className="queue-header mb-2">
+                        <div className="queue-title-group">
+                          <span className="queue-label">Processed Results</span>
+                          <span className="queue-count">{processedResults.length}</span>
+                        </div>
+                      </div>
+                      <FileList
+                        processedResults={processedResults}
+                        onRemove={removeFile}
+                        onViewProcessed={handleViewProcessed}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="processed"
+                      />
+                    </div>
+                  )}
+
                 </div>
               )}
 
-              {/* Bottom Section: Controls & Actions */}
-              <div className="controls-section">
-                <div className="batch-actions">
-                  <button
-                    onClick={convertAll}
-                    disabled={!hasPending}
-                    className="btn-primary"
-                  >
-                    {t.convertToMp3}
-                  </button>
-                  <button
-                    onClick={transcribeAll}
-                    disabled={!hasPending && !files.some(f => f.status === 'completed' && f.transcriptionStatus === 'idle')}
-                    className="btn-primary"
-                  >
-                    {t.transcribeToText}
-                  </button>
+              {/* Bottom Section: Controls & Actions (only for queue) */}
+              {files.some(f => f.status === 'pending' || (f.status === 'completed' && f.transcriptionStatus === 'idle')) && (
+                <div className="controls-section border-t pt-6 mt-4">
+                  <div className="batch-actions">
+                    <button
+                      onClick={convertAll}
+                      disabled={!hasPending}
+                      className="btn-primary"
+                    >
+                      {t.convertToMp3}
+                    </button>
+                    <button
+                      onClick={transcribeAll}
+                      disabled={!hasPending && !files.some(f => f.status === 'completed' && f.transcriptionStatus === 'idle')}
+                      className="btn-primary"
+                    >
+                      {t.transcribeToText}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
+
 
             {/* Footer / Tip */}
             <div className="footer-tip animate-fade-in">
               <p>
-                iConvert Audio, by Bella Labs, V0.0.1
+                iConvert Audio, by Bella Labs, V0.0.9
               </p>
             </div>
+
           </div>
         )}
       </main>
