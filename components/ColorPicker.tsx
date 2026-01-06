@@ -53,7 +53,7 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ primaryHue, setPrimary
             </div>
 
             {isOpen && (
-                <div ref={popoverRef} className="palette-popover animate-in fade-in zoom-in-95 duration-200">
+                <div ref={popoverRef} className="palette-popover">
                     {COLORS.map((color) => (
                         <button
                             key={color.hue}
