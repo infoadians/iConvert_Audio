@@ -318,7 +318,7 @@ const App: React.FC = () => {
             {/* Footer / Tip */}
             <div className="footer-tip animate-fade-in">
               <p>
-                {t.footerText}
+                iConvert Audio, by Bella Labs, V0.0.1
               </p>
             </div>
           </div>
