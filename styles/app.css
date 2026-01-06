@@ -1063,6 +1063,13 @@ input {
 }
 
 /* Templates */
+.template-scroll-area {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
 .template-list {
     display: flex;
     flex-direction: column;

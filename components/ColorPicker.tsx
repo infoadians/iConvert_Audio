@@ -46,11 +46,12 @@ export const ColorPicker: React.FC<ColorPickerProps> = ({ primaryHue, setPrimary
                 className="color-picker-trigger"
                 title="Change Theme Color"
             >
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-3M9.707 3.293l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414L5 3.586V2a1 1 0 011-1h2a1 1 0 011 1v1.586l1.293-1.293a1 1 0 111.414 1.414z" />
-                    <circle cx="12" cy="7" r="1.5" fill="currentColor" />
-                    <circle cx="17" cy="10" r="1.5" fill="currentColor" />
-                    <circle cx="17" cy="15" r="1.5" fill="currentColor" />
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+                    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+                    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+                    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.707-.153 2.332-.394 1.183-.456 1.668-1.47 1.668-2.606 0-1.5 1.5-2.5 3-2.5 1.954 0 3-1.045 3-3 0-5.5-4.5-10-10-10Z" />
                 </svg>
             </div>
 
