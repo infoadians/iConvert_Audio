@@ -79,7 +79,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </button>
                 </div>
 
-                <div className="modal-body overflow-y-auto max-h-[70vh] pr-2">
+                <div className="modal-body">
                     {/* Appearance Section */}
                     <div className="settings-section">
                         <h4 className="settings-subtitle">{t.appearance}</h4>
@@ -150,8 +150,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             </div>
                         </div>
 
-                        <div className="template-form glass-panel p-3">
-                            <h5 className="text-xs font-semibold mb-2 uppercase opacity-60 ml-2">
+                        <div className="template-form glass-panel p-4">
+                            <h5 className="text-xs font-bold mb-3 uppercase opacity-70 ml-4">
                                 {editingTemplate ? t.editTemplate : t.addTemplate}
                             </h5>
                             <input
