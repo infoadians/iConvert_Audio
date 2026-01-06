@@ -369,7 +369,7 @@ input {
 
 /* --- Queue & File List --- */
 .queue-section {
-    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Removed slideUp animation */
 }
 
 .queue-header {
@@ -919,7 +919,7 @@ input {
 
 .palette-popover {
     position: absolute;
-    bottom: 110%;
+    top: 110%;
     right: 0;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
@@ -1111,11 +1111,18 @@ input {
 
 
 .icon-btn-small {
-    padding: 0.4rem;
-    border-radius: 0.4rem;
-    opacity: 0.6;
+    padding: 0.6rem;
+    border-radius: 0.5rem;
+    opacity: 0.7;
     transition: all 0.2s;
     display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn-small svg {
+    width: 20px;
+    height: 20px;
 }
 
 .icon-btn-small:hover {

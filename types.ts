@@ -11,6 +11,7 @@ export interface AudioFile {
   error?: string;
   transcriptionStatus?: 'idle' | 'processing' | 'done' | 'error';
   transcriptionResult?: string;
+  duration?: number;
 }
 
 export interface ConversionOptions {

@@ -95,16 +95,32 @@ const App: React.FC = () => {
     localStorage.setItem('iconvert_templates', JSON.stringify(newTemplates));
   };
 
-  const onFilesAdded = useCallback((newFiles: File[]) => {
-    const audioFiles: AudioFile[] = newFiles.map(file => ({
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        audio.src = e.target?.result as string;
+        audio.addEventListener('loadedmetadata', () => {
+          resolve(audio.duration);
+        });
+        audio.onerror = () => resolve(0);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const onFilesAdded = useCallback(async (newFiles: File[]) => {
+    const audioFiles: AudioFile[] = await Promise.all(newFiles.map(async file => ({
       id: Math.random().toString(36).substring(7),
       file,
       name: file.name,
       size: file.size,
       status: 'pending',
       progress: 0,
-      transcriptionStatus: 'idle'
-    }));
+      transcriptionStatus: 'idle',
+      duration: await getAudioDuration(file)
+    })));
     setFiles(prev => [...prev, ...audioFiles]);
   }, []);
 

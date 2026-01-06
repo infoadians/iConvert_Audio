@@ -25,6 +25,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     templates, onSaveTemplates, t
 }) => {
     const [localKey, setLocalKey] = useState(apiKey);
+    const [keySaved, setKeySaved] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<ProcessTemplate | null>(null);
     const [newName, setNewName] = useState('');
     const [newPrompt, setNewPrompt] = useState('');
@@ -33,6 +34,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     const handleSaveKey = () => {
         onSaveKey(localKey);
+        setKeySaved(true);
+        setTimeout(() => setKeySaved(false), 2000);
     };
 
     const handleAddTemplate = () => {
@@ -71,7 +74,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="modal-overlay">
             <div className="modal-card">
                 <div className="modal-header">
-                    <h3 className="modal-title">{t.settings}</h3>
+                    <h3 className="modal-title ml-4">{t.settings}</h3>
                     <button onClick={onClose} className="modal-close-btn">
                         <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -111,8 +114,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     {/* AI Section */}
                     <div className="settings-section">
-                        <h4 className="settings-subtitle">Gemini AI</h4>
-                        <p className="settings-desc">{t.apiKeyDesc}</p>
+                        <p className="settings-desc mb-3">{t.apiKeyDesc}</p>
                         <div className="flex gap-2">
                             <input
                                 type="password"
@@ -122,7 +124,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 className="settings-input"
                             />
                             <button onClick={handleSaveKey} className="settings-btn-primary">
-                                {t.saveKey}
+                                {keySaved ? '✓ Saved' : t.saveKey}
                             </button>
                         </div>
                     </div>
