@@ -113,8 +113,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
 
                     {/* AI Section */}
-                    <div className="settings-section">
-                        <p className="settings-desc mb-3">{t.apiKeyDesc}</p>
+                    <div className="settings-section compact">
+                        <h4 className="settings-subtitle">{t.apiKeyTitle}</h4>
                         <div className="flex gap-2">
                             <input
                                 type="password"
@@ -132,7 +132,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     {/* Templates Section */}
                     <div className="settings-section">
                         <h4 className="settings-subtitle">{t.templates}</h4>
-                        <div className="template-scroll-area mb-4">
+                        <div className="template-scroll-area">
                             <div className="template-list">
                                 {templates.map(tmp => (
                                     <div key={tmp.id} className="template-item">
