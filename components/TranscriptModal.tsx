@@ -19,12 +19,14 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({ isOpen, onClos
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleDownload = () => {
-        const blob = new Blob([content], { type: 'text/plain' });
+    const handleDownload = (format: 'txt' | 'md' = 'txt') => {
+        const type = format === 'md' ? 'text/markdown' : 'text/plain';
+        const ext = format === 'md' ? 'md' : 'txt';
+        const blob = new Blob([content], { type });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `${fileName.split('.')[0]}_transcript.txt`;
+        link.download = `${fileName.split('.')[0]}_transcript.${ext}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -33,7 +35,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({ isOpen, onClos
 
     return (
         <div className="modal-overlay">
-            <div className="modal-card" style={{ maxWidth: '600px' }}>
+            <div className="modal-card">
                 <div className="modal-header">
                     <div className="modal-title-group">
                         <h3 className="modal-title">{fileName}</h3>
@@ -45,11 +47,12 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({ isOpen, onClos
                     </button>
                 </div>
 
-                <div className="relative mb-6">
+                <div className="relative mb-6 flex-1 min-h-0">
                     <textarea
                         readOnly
                         value={content}
-                        className="w-full h-64 p-4 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm font-mono leading-relaxed resize-none focus:outline-none text-zinc-800 dark:text-zinc-200"
+                        className="w-full h-full p-4 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm font-mono leading-relaxed resize-none focus:outline-none text-zinc-800 dark:text-zinc-200"
+                        style={{ minHeight: '300px' }}
                     />
                 </div>
 
@@ -71,11 +74,18 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({ isOpen, onClos
                         )}
                     </button>
                     <button
-                        onClick={handleDownload}
+                        onClick={() => handleDownload('txt')}
                         className="action-btn-primary"
                     >
                         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                        <span>Download</span>
+                        <span>TXT</span>
+                    </button>
+                    <button
+                        onClick={() => handleDownload('md')}
+                        className="action-btn-primary"
+                    >
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                        <span>MD</span>
                     </button>
                 </div>
             </div>
