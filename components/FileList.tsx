@@ -27,22 +27,22 @@ export const FileList: React.FC<FileListProps> = ({
   return (
     <div className="file-list-group">
       {files.map((item) => (
-        <div key={item.id} className="file-item">
+        <div key={item.id} className="file-item glass-card-hover">
 
           <div className="file-item-left">
             {/* Status Icon */}
-            <div className={`file - icon - box ${item.status === 'completed' ? 'completed' :
+            <div className={`file-icon-box ${item.status === 'completed' ? 'completed' :
                 (item.status === 'converting' || item.transcriptionStatus === 'processing') ? 'converting' :
                   (item.status === 'error' || item.transcriptionStatus === 'error') ? 'error' : 'idle'
-              } `}>
+              }`}>
               {item.status === 'completed' ? (
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               ) : (item.status === 'converting' || item.transcriptionStatus === 'processing') ? (
-                null
+                <div className="spinner-micro"></div>
               ) : (item.status === 'error' || item.transcriptionStatus === 'error') ? (
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
               ) : (
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" /></svg>
               )}
             </div>
 
@@ -51,13 +51,26 @@ export const FileList: React.FC<FileListProps> = ({
               <h4 className="file-name">{item.name}</h4>
               <div className="file-meta-row">
                 <span className="file-size">{formatSize(item.size)}</span>
+
+                {/* Visual Progress Bar */}
                 {(item.status === 'converting' || item.transcriptionStatus === 'processing') && (
                   <div className="file-progress-track">
-                    <div className="file-progress-fill" style={{ width: `${item.status === 'converting' ? item.progress : 90}% ` }}></div>
+                    <div
+                      className="file-progress-fill"
+                      style={{ width: `${item.status === 'converting' ? item.progress : 100}%` }}
+                    ></div>
                   </div>
                 )}
+
+                {/* Status Badges */}
                 {item.transcriptionStatus === 'processing' && (
-                  <span className="status-badge">{t.transcribing}</span>
+                  <span className="status-badge processing">{t.transcribing}</span>
+                )}
+                {item.status === 'completed' && (
+                  <span className="status-badge success">Converted</span>
+                )}
+                {item.transcriptionStatus === 'done' && (
+                  <span className="status-badge success">Transcribed</span>
                 )}
               </div>
             </div>
@@ -71,8 +84,12 @@ export const FileList: React.FC<FileListProps> = ({
               <a
                 href={item.outputUrl}
                 download={item.outputName}
-                className="action-btn download"
+                className="action-btn download wobble-hover"
+                title="Download MP3"
               >
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
                 {t.download}
               </a>
             )}
@@ -82,21 +99,22 @@ export const FileList: React.FC<FileListProps> = ({
               <>
                 {item.transcriptionStatus === 'done' ? (
                   <>
-                    <button onClick={() => onViewTranscript(item.id)} className="action-btn transcribe">
-                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                    <button onClick={() => onViewTranscript(item.id)} className="action-btn transcribe-view" title="View Transcript">
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      View
                     </button>
-                    <button onClick={() => onDownloadTranscript(item.id, 'txt')} className="action-btn secondary">
-                      TXT
+                    <button onClick={() => onDownloadTranscript(item.id, 'txt')} className="action-btn secondary " title="Download Transcript">
+                      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => onTranscribe(item.id)} className="action-btn transcribe">
-                    <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+                  <button onClick={() => onTranscribe(item.id)} className="action-btn transcribe" title="Transcribe Audio">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                     </svg>
                     {t.transcribe}
                   </button>
@@ -104,9 +122,9 @@ export const FileList: React.FC<FileListProps> = ({
               </>
             )}
 
-            <button onClick={() => onRemove(item.id)} className="remove-btn">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            <button onClick={() => onRemove(item.id)} className="remove-btn" title="Remove File">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
             </button>
           </div>

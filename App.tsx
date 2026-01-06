@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Header } from './components/Header';
 import { DropZone } from './components/DropZone';
 import { FileList } from './components/FileList';
-import { Settings } from './components/Settings';
+
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { TranscriptModal } from './components/TranscriptModal';
 import { AudioFile, ConversionOptions } from './types';
@@ -16,10 +16,11 @@ const App: React.FC = () => {
   const [isFFmpegLoaded, setIsFFmpegLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
-  const [options, setOptions] = useState<ConversionOptions>({
-    bitrate: '192k',
+  // Hardcoded options for conversion
+  const options: ConversionOptions = {
+    bitrate: '128k',
     sampleRate: '44100',
-  });
+  };
   const [lang, setLang] = useState<Language>('en');
   const [isDark, setIsDark] = useState(false);
 
@@ -302,8 +303,6 @@ const App: React.FC = () => {
 
               {/* Bottom Section: Controls & Actions */}
               <div className="controls-section">
-                <Settings options={options} setOptions={setOptions} t={t} />
-
                 <div className="action-row">
                   <button
                     onClick={convertAll}
