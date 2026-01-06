@@ -502,7 +502,8 @@ input {
     gap: 0.75rem;
 }
 
-.file-size {
+.file-size,
+.file-duration {
     font-size: 0.75rem;
     color: var(--color-text-muted);
     font-family: monospace;
