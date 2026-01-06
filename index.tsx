@@ -2,6 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import './styles/app.css';
 
 // Register Service Worker for PWA/Offline functionality
 // Added origin check to prevent registration errors on restricted domains (like development proxies)
