@@ -8,6 +8,7 @@ interface FileListProps {
   onConvert: (id: string) => void;
   onTranscribe: (id: string) => void;
   onDownloadTranscript: (id: string, format: 'txt' | 'md') => void;
+  onViewTranscript: (id: string) => void;
   hasApiKey: boolean;
   t: any;
 }
@@ -20,7 +21,9 @@ const formatSize = (bytes: number) => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-export const FileList: React.FC<FileListProps> = ({ files, onRemove, onConvert, onTranscribe, onDownloadTranscript, hasApiKey, t }) => {
+export const FileList: React.FC<FileListProps> = ({
+  files, onRemove, onConvert, onTranscribe, onDownloadTranscript, onViewTranscript, hasApiKey, t
+}) => {
   return (
     <div className="file-list-group">
       {files.map((item) => (
@@ -28,10 +31,10 @@ export const FileList: React.FC<FileListProps> = ({ files, onRemove, onConvert, 
 
           <div className="file-item-left">
             {/* Status Icon */}
-            <div className={`file-icon-box ${item.status === 'completed' ? 'completed' :
+            <div className={`file - icon - box ${item.status === 'completed' ? 'completed' :
                 (item.status === 'converting' || item.transcriptionStatus === 'processing') ? 'converting' :
                   (item.status === 'error' || item.transcriptionStatus === 'error') ? 'error' : 'idle'
-              }`}>
+              } `}>
               {item.status === 'completed' ? (
                 <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
               ) : (item.status === 'converting' || item.transcriptionStatus === 'processing') ? (
@@ -50,7 +53,7 @@ export const FileList: React.FC<FileListProps> = ({ files, onRemove, onConvert, 
                 <span className="file-size">{formatSize(item.size)}</span>
                 {(item.status === 'converting' || item.transcriptionStatus === 'processing') && (
                   <div className="file-progress-track">
-                    <div className="file-progress-fill" style={{ width: `${item.status === 'converting' ? item.progress : 90}%` }}></div>
+                    <div className="file-progress-fill" style={{ width: `${item.status === 'converting' ? item.progress : 90}% ` }}></div>
                   </div>
                 )}
                 {item.transcriptionStatus === 'processing' && (
@@ -79,11 +82,15 @@ export const FileList: React.FC<FileListProps> = ({ files, onRemove, onConvert, 
               <>
                 {item.transcriptionStatus === 'done' ? (
                   <>
-                    <button onClick={() => onDownloadTranscript(item.id, 'txt')} className="action-btn secondary">
-                      {t.downloadTxt}
+                    <button onClick={() => onViewTranscript(item.id)} className="action-btn transcribe">
+                      <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      View
                     </button>
-                    <button onClick={() => onDownloadTranscript(item.id, 'md')} className="action-btn secondary">
-                      {t.downloadMd}
+                    <button onClick={() => onDownloadTranscript(item.id, 'txt')} className="action-btn secondary">
+                      TXT
                     </button>
                   </>
                 ) : (

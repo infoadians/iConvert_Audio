@@ -5,6 +5,7 @@ import { DropZone } from './components/DropZone';
 import { FileList } from './components/FileList';
 import { Settings } from './components/Settings';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { TranscriptModal } from './components/TranscriptModal';
 import { AudioFile, ConversionOptions } from './types';
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
@@ -22,9 +23,15 @@ const App: React.FC = () => {
   const [lang, setLang] = useState<Language>('en');
   const [isDark, setIsDark] = useState(false);
 
+  // Theme Color
+  const [primaryHue, setPrimaryHue] = useState(249); // Default Indigo
+
   // API Key State
   const [apiKey, setApiKey] = useState('');
   const [isKeyModalOpen, setIsKeyModalOpen] = useState(false);
+
+  // Transcript Modal State
+  const [viewingTranscript, setViewingTranscript] = useState<{ name: string, content: string } | null>(null);
 
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
@@ -37,6 +44,11 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [isDark]);
+
+  useEffect(() => {
+    // Apply primary color variable
+    document.documentElement.style.setProperty('--primary-h', primaryHue.toString());
+  }, [primaryHue]);
 
   useEffect(() => {
     const storedKey = localStorage.getItem('iconvert_gemini_key');
@@ -139,7 +151,7 @@ const App: React.FC = () => {
       const ai = new GoogleGenAI({ apiKey });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash-exp', // Updated model
         contents: [
           {
             role: 'user',
@@ -151,7 +163,7 @@ const App: React.FC = () => {
         ]
       });
 
-      const text = response.text();
+      const text = response.text;
 
       setFiles(prev => prev.map(f =>
         f.id === id ? { ...f, transcriptionStatus: 'done', transcriptionResult: text } : f
@@ -180,6 +192,17 @@ const App: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  // Open modal to view transcript
+  const handleViewTranscript = (id: string) => {
+    const targetFile = files.find(f => f.id === id);
+    if (targetFile && targetFile.transcriptionResult) {
+      setViewingTranscript({
+        name: targetFile.name,
+        content: targetFile.transcriptionResult
+      });
+    }
+  };
+
   const hasPending = files.some(f => f.status === 'pending');
   const hasFiles = files.length > 0;
 
@@ -193,6 +216,8 @@ const App: React.FC = () => {
         t={t}
         onOpenSettings={() => setIsKeyModalOpen(true)}
         hasApiKey={!!apiKey}
+        primaryHue={primaryHue}
+        setPrimaryHue={setPrimaryHue}
       />
 
       <ApiKeyModal
@@ -200,6 +225,14 @@ const App: React.FC = () => {
         onClose={() => setIsKeyModalOpen(false)}
         onSave={handleSaveKey}
         currentKey={apiKey}
+        t={t}
+      />
+
+      <TranscriptModal
+        isOpen={!!viewingTranscript}
+        onClose={() => setViewingTranscript(null)}
+        fileName={viewingTranscript?.name || ''}
+        content={viewingTranscript?.content || ''}
         t={t}
       />
 
@@ -259,6 +292,7 @@ const App: React.FC = () => {
                       onConvert={startConversion}
                       onTranscribe={transcribeFile}
                       onDownloadTranscript={downloadTranscript}
+                      onViewTranscript={handleViewTranscript}
                       hasApiKey={!!apiKey}
                       t={t}
                     />
