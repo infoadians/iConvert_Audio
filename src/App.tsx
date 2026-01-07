@@ -184,7 +184,22 @@ const App: React.FC = () => {
 
   const removeFile = useCallback((id: string, type: 'audio' | 'processed' = 'audio') => {
     if (type === 'audio') {
-      setFiles(prev => prev.filter(f => f.id !== id));
+      setFiles(prev => {
+        const fileToRemove = prev.find(f => f.id === id);
+        if (fileToRemove && fileToRemove.transcriptionStatus === 'done' && fileToRemove.transcriptionResult) {
+          // Archive the transcript before deleting
+          const archivedResult: ProcessedResult = {
+            id: Math.random().toString(36).substring(7),
+            audioFileName: fileToRemove.name,
+            templateName: 'Original Transcript',
+            result: fileToRemove.transcriptionResult,
+            timestamp: Date.now()
+          };
+          setProcessedResults(p => [archivedResult, ...p]);
+          toast.info("Transcribed text saved to results");
+        }
+        return prev.filter(f => f.id !== id);
+      });
     } else {
       setProcessedResults(prev => prev.filter(r => r.id !== id));
     }
@@ -256,7 +271,7 @@ const App: React.FC = () => {
             role: 'user',
             parts: [
               { inlineData: { mimeType: targetFile.file.type || 'audio/mp3', data: base64Data } },
-              { text: "please transcribe the attached audio, without adding or deleting any words, just add the proper punctuation grouping in short paragraphs, preferable of 3 or 4 sentences each" }
+              { text: "Transcribir el audio adjunto, bucando reproducir fielmente lo dicho. Por lo tanto, sin agregar ni quitar palabras.  Únicamente agregar puntuación y agrupar en párrafos cortos de 4 o menos oraciones" }
             ]
           }
         ]
@@ -571,7 +586,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.0</p>
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.1</p>
       </footer>
     </div>
   );
