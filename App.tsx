@@ -10,12 +10,16 @@ import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult } from '
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { GoogleGenAI } from "@google/genai";
+import { SplashScreen } from './components/SplashScreen';
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<AudioFile[]>([]);
   const [isFFmpegLoaded, setIsFFmpegLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [initError, setInitError] = useState<string | null>(null);
+  const [isIPhone, setIsIPhone] = useState(false);
+  const [showIPhoneTip, setShowIPhoneTip] = useState(false);
   // Hardcoded options for conversion
   const options: ConversionOptions = {
     bitrate: '128k',
@@ -90,10 +94,21 @@ const App: React.FC = () => {
       } catch (error: any) {
         setInitError(error.message || "Engine Error");
       } finally {
-        setIsInitializing(false);
+        setTimeout(() => {
+          setIsInitializing(false);
+          setTimeout(() => setShowSplash(false), 800); // Wait for fade-out animation
+        }, 1500); // Ensure splash is visible for at least 1.5s
       }
     };
     init();
+
+    // Check for iPhone / PWA
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isPWA = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    setIsIPhone(isIOS);
+    if (isIOS && !isPWA) {
+      setTimeout(() => setShowIPhoneTip(true), 3000);
+    }
   }, []);
 
   const handleSaveKey = (key: string) => {
@@ -314,7 +329,26 @@ const App: React.FC = () => {
   const hasFiles = files.length > 0;
 
   return (
-    <div className="app-container">
+    <div className={`app-container ${fontScale !== 1 ? 'scaled' : ''}`}>
+      {showSplash && (
+        <div className={!isInitializing ? 'fade-out' : ''}>
+          <SplashScreen />
+        </div>
+      )}
+
+      {showIPhoneTip && (
+        <div className="iphone-tip glass-panel animate-slide-up">
+          <div className="flex items-center gap-3">
+            <div className="tip-icon">✨</div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold">Install iConvert</p>
+              <p className="text-xs opacity-70">Tap the share icon and select "Add to Home Screen" for the best experience.</p>
+            </div>
+            <button onClick={() => setShowIPhoneTip(false)} className="close-mini">×</button>
+          </div>
+        </div>
+      )}
+
       <Header
         t={t}
         onOpenSettings={() => setIsSettingsOpen(true)}
@@ -497,7 +531,7 @@ const App: React.FC = () => {
             {/* Footer / Tip */}
             <div className="footer-tip animate-fade-in">
               <p>
-                iConvert Audio, by Bella Labs, V0.1.3
+                iConvert Audio, by Bella Labs, V0.1.4
               </p>
             </div>
 
