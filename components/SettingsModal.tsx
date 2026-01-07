@@ -16,13 +16,15 @@ interface SettingsModalProps {
     onSaveKey: (key: string) => void;
     templates: ProcessTemplate[];
     onSaveTemplates: (templates: ProcessTemplate[]) => void;
+    fontScale: number;
+    onSaveFontScale: (scale: number) => void;
     t: any;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
     isOpen, onClose, lang, setLang, isDark, setIsDark,
     primaryHue, setPrimaryHue, apiKey, onSaveKey,
-    templates, onSaveTemplates, t
+    templates, onSaveTemplates, fontScale, onSaveFontScale, t
 }) => {
     const [localKey, setLocalKey] = useState(apiKey);
     const [keySaved, setKeySaved] = useState(false);
@@ -109,6 +111,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 <option value="en">English</option>
                                 <option value="es">Español</option>
                             </select>
+                        </div>
+                        <div className="settings-row">
+                            <span>Global Scale</span>
+                            <div className="font-controls mini">
+                                <button className="font-btn mini" onClick={() => onSaveFontScale(Math.max(0.5, fontScale - 0.1))}>−</button>
+                                <span className="font-size-display mini">{Math.round(fontScale * 100)}%</span>
+                                <button className="font-btn mini" onClick={() => onSaveFontScale(Math.min(2, fontScale + 0.1))}>+</button>
+                            </div>
                         </div>
                     </div>
 

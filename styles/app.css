@@ -50,6 +50,11 @@
     --trans-base: 300ms ease;
 
     --header-height: 5rem;
+    --global-font-scale: 1.0;
+}
+
+html {
+    font-size: calc(16px * var(--global-font-scale));
 }
 
 /* Utils */
@@ -255,7 +260,8 @@ input {
 
 .logo-title {
     font-weight: 800;
-    font-size: 1.1rem;
+    font-size: 1.32rem;
+    /* Was 1.1rem, increased by 20% */
     letter-spacing: -0.02em;
     background: linear-gradient(to right, var(--color-text-main), var(--color-text-subtle));
     -webkit-background-clip: text;
@@ -1364,6 +1370,24 @@ input {
     color: var(--color-primary);
 }
 
+/* Mini Font Controls for Settings */
+.font-controls.mini {
+    padding: 0.15rem 0.35rem;
+    gap: 0.25rem;
+}
+
+.font-btn.mini {
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1rem;
+}
+
+.font-size-display.mini {
+    font-size: 0.8rem;
+    min-width: 2.5rem;
+    text-align: center;
+}
+
 .icon-btn-small:hover {
     opacity: 1;
     background: var(--color-bg);
@@ -1399,50 +1423,122 @@ input {
 }
 
 /* Batch Actions Layout */
-.batch-actions {
-    display: flex;
-    gap: 1.5rem;
-    width: 100%;
-}
-
 .batch-actions .btn-primary {
     flex: 1;
     padding: 0.85rem 1rem;
 }
 
-/* Process Menu in Transcript */
-.process-menu-container {
-    position: relative;
+.controls-section {
+    position: sticky;
+    bottom: 0;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid var(--color-border);
+    padding: 1.5rem 1rem;
+    margin: 0 -1.5rem -1.5rem -1.5rem;
+    /* Match main-content padding */
+    z-index: 40;
 }
 
-.process-dropdown {
-    position: absolute;
-    bottom: 120%;
+/* Process Menu in Transcript */
+.template-selector-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
     right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.template-selector-modal {
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: 1rem;
-    min-width: 200px;
-    z-index: 100;
-    padding: 0.5rem;
-    box-shadow: var(--shadow-lg);
-    animation: scaleIn 0.2s ease;
+    border-radius: var(--radius-xl);
+    width: 90%;
+    max-width: 600px;
+    box-shadow: var(--shadow-xl);
+    padding: 2rem;
+    animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.process-item {
-    width: 100%;
-    text-align: left;
-    padding: 0.75rem 1rem;
-    border-radius: 0.6rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s;
-    color: var(--color-text-main);
+.template-selector-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
 }
 
-.process-item:hover {
+.template-selector-header h4 {
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.close-mini {
+    font-size: 2rem;
+    opacity: 0.5;
+    line-height: 1;
+}
+
+.template-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+}
+
+.template-card-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
     background: var(--color-bg-sub);
-    color: var(--color-primary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    transition: all 0.2s;
+}
+
+.template-card-btn:hover {
+    transform: translateY(-4px);
+    border-color: var(--color-primary);
+    background: var(--color-primary-light);
+    box-shadow: var(--shadow-lg);
+}
+
+.template-card-icon {
+    width: 3rem;
+    height: 3rem;
+    background: var(--color-primary);
+    color: white;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.template-card-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.modal-close-btn-top {
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+    opacity: 0.7;
+}
+
+.modal-close-btn-top:hover {
+    background: var(--color-bg-sub);
+    opacity: 1;
+    color: var(--color-error);
 }
 
 

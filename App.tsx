@@ -42,6 +42,9 @@ const App: React.FC = () => {
   const [processedResults, setProcessedResults] = useState<ProcessedResult[]>([]);
   const [viewingProcessed, setViewingProcessed] = useState<ProcessedResult | null>(null);
 
+  // Global Font Scale (0.5 to 2.0)
+  const [fontScale, setFontScale] = useState(1.0);
+
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
 
@@ -60,6 +63,11 @@ const App: React.FC = () => {
   }, [primaryHue]);
 
   useEffect(() => {
+    // Apply global font scale
+    document.documentElement.style.setProperty('--global-font-scale', fontScale.toString());
+  }, [fontScale]);
+
+  useEffect(() => {
     const storedKey = localStorage.getItem('iconvert_gemini_key');
     if (storedKey) setApiKey(storedKey);
 
@@ -71,6 +79,9 @@ const App: React.FC = () => {
         console.error("Error parsing templates", e);
       }
     }
+
+    const storedFontScale = localStorage.getItem('iconvert_font_scale');
+    if (storedFontScale) setFontScale(parseFloat(storedFontScale));
 
     const init = async () => {
       try {
@@ -97,6 +108,11 @@ const App: React.FC = () => {
   const handleSaveTemplates = (newTemplates: ProcessTemplate[]) => {
     setTemplates(newTemplates);
     localStorage.setItem('iconvert_templates', JSON.stringify(newTemplates));
+  };
+
+  const handleSaveFontScale = (scale: number) => {
+    setFontScale(scale);
+    localStorage.setItem('iconvert_font_scale', scale.toString());
   };
 
   const getAudioDuration = (file: File): Promise<number> => {
@@ -322,6 +338,8 @@ const App: React.FC = () => {
         onSaveKey={handleSaveKey}
         templates={templates}
         onSaveTemplates={handleSaveTemplates}
+        fontScale={fontScale}
+        onSaveFontScale={handleSaveFontScale}
         t={t}
       />
 
@@ -479,7 +497,7 @@ const App: React.FC = () => {
             {/* Footer / Tip */}
             <div className="footer-tip animate-fade-in">
               <p>
-                iConvert Audio, by Bella Labs, V0.1.2
+                iConvert Audio, by Bella Labs, V0.1.3
               </p>
             </div>
 

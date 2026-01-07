@@ -62,14 +62,9 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-card full-window-modal" onClick={(e) => e.stopPropagation()}>
-                <button onClick={onClose} className="modal-close-btn-large">
-                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-
-                {/* Line 1: Zoom Controls */}
-                <div className="modal-header-line-1">
+                {/* Line 1: Zoom Controls & Close Button */}
+                <div className="modal-header-line-1 flex justify-between items-center w-full px-8">
+                    <div className="flex-1"></div>
                     <div className="font-controls">
                         <button
                             className="font-btn"
@@ -82,6 +77,13 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                             onClick={() => setFontSize(f => Math.min(48, f + 2))}
                             title="Increase text size"
                         >+</button>
+                    </div>
+                    <div className="flex-1 flex justify-end">
+                        <button onClick={onClose} className="modal-close-btn-top">
+                            <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
 
@@ -114,22 +116,35 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                         </button>
 
                         {isMenuOpen && (
-                            <div className="process-dropdown-centered">
-                                {templates.map(tmp => (
-                                    <button
-                                        key={tmp.id}
-                                        className="process-item"
-                                        onClick={() => {
-                                            onProcess(tmp);
-                                            setIsMenuOpen(false);
-                                        }}
-                                    >
-                                        {tmp.name}
-                                    </button>
-                                ))}
-                                {templates.length === 0 && (
-                                    <div className="process-item opacity-50 text-xs">{t.noTemplates || 'No templates'}</div>
-                                )}
+                            <div className="template-selector-overlay" onClick={() => setIsMenuOpen(false)}>
+                                <div className="template-selector-modal" onClick={e => e.stopPropagation()}>
+                                    <div className="template-selector-header">
+                                        <h4>{t.templates || 'Select Template'}</h4>
+                                        <button className="close-mini" onClick={() => setIsMenuOpen(false)}>×</button>
+                                    </div>
+                                    <div className="template-grid">
+                                        {templates.map(tmp => (
+                                            <button
+                                                key={tmp.id}
+                                                className="template-card-btn"
+                                                onClick={() => {
+                                                    onProcess(tmp);
+                                                    setIsMenuOpen(false);
+                                                }}
+                                            >
+                                                <div className="template-card-icon">
+                                                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                                </div>
+                                                <span className="template-card-name">{tmp.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                    {templates.length === 0 && (
+                                        <div className="empty-templates">
+                                            <p>{t.noTemplates || 'No templates configured in Settings'}</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
