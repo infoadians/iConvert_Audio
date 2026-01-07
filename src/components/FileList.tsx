@@ -116,7 +116,7 @@ export const FileList: React.FC<FileListProps> = ({
 
               <div className="flex-1 min-w-0">
                 <h4 className="text-sm font-medium truncate">{item.name}</h4>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
                   <span>{formatSize(item.size)}</span>
                   {item.duration && <span>• {formatDuration(item.duration)}</span>}
 
