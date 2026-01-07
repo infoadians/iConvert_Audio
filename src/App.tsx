@@ -11,6 +11,13 @@ import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { GoogleGenAI } from "@google/genai";
 import { SplashScreen } from './components/SplashScreen';
+import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<AudioFile[]>([]);
@@ -64,11 +71,24 @@ const App: React.FC = () => {
   useEffect(() => {
     // Apply primary color variable
     document.documentElement.style.setProperty('--primary-h', primaryHue.toString());
+    // Simple HSL conversion for Tailwind custom prop if needed, or use inline styles for generic vars
+    // Ideally we would set these on :root in a way Tailwind can pickup, but for now we might rely on the globals.css variables
+    // mapped to these CSS variables if we set them up there. 
+    // For now, let's assume globals.css handles hsl(var(--primary)) and we just set --primary to the hue-sat-light values.
+
+    // Actually, Shadcn uses HSL values. We can try to set the CSS variable directly.
+    // Assuming Saturation 95% and Lightness 60% for primary.
+    document.documentElement.style.setProperty('--primary', `${primaryHue} 95% 60%`);
+    document.documentElement.style.setProperty('--ring', `${primaryHue} 95% 60%`);
+    // Adjust for dark mode if needed purely via CSS, but this is a rough dynamic theme.
   }, [primaryHue]);
 
   useEffect(() => {
     // Apply global font scale
     document.documentElement.style.setProperty('--global-font-scale', fontScale.toString());
+    // We might need to scale the root font size or use a class.
+    // Shadcn uses rems, so scaling root font-size works.
+    document.documentElement.style.fontSize = `${fontScale * 100}%`;
   }, [fontScale]);
 
   useEffect(() => {
@@ -115,8 +135,10 @@ const App: React.FC = () => {
     setApiKey(key);
     if (key) {
       localStorage.setItem('iconvert_gemini_key', key);
+      toast.success("API Key saved");
     } else {
       localStorage.removeItem('iconvert_gemini_key');
+      toast.info("API Key removed");
     }
   };
 
@@ -157,6 +179,7 @@ const App: React.FC = () => {
       duration: await getAudioDuration(file)
     })));
     setFiles(prev => [...prev, ...audioFiles]);
+    toast.success(`${newFiles.length} file(s) added`);
   }, []);
 
   const removeFile = useCallback((id: string, type: 'audio' | 'processed' = 'audio') => {
@@ -165,10 +188,6 @@ const App: React.FC = () => {
     } else {
       setProcessedResults(prev => prev.filter(r => r.id !== id));
     }
-  }, []);
-
-  const clearCompleted = useCallback(() => {
-    setFiles(prev => prev.filter(f => f.status !== 'completed' && f.transcriptionStatus !== 'done'));
   }, []);
 
   const startConversion = useCallback(async (id: string) => {
@@ -187,8 +206,10 @@ const App: React.FC = () => {
       setFiles(prev => prev.map(f =>
         f.id === id ? { ...f, status: 'completed', outputUrl: url, outputName: name, progress: 100 } : f
       ));
+      toast.success("Conversion complete");
     } catch (err: any) {
       setFiles(prev => prev.map(f => f.id === id ? { ...f, status: 'error', error: err.message || 'Error' } : f));
+      toast.error("Conversion failed");
     }
   }, [files, options]);
 
@@ -215,7 +236,10 @@ const App: React.FC = () => {
 
   const transcribeFile = async (id: string) => {
     const targetFile = files.find(f => f.id === id);
-    if (!targetFile || !apiKey) return;
+    if (!targetFile || !apiKey) {
+      if (!apiKey) toast.error("API Key required for transcription");
+      return;
+    }
 
     setFiles(prev => prev.map(f =>
       f.id === id ? { ...f, transcriptionStatus: 'processing' } : f
@@ -243,12 +267,14 @@ const App: React.FC = () => {
       setFiles(prev => prev.map(f =>
         f.id === id ? { ...f, transcriptionStatus: 'done', transcriptionResult: text } : f
       ));
+      toast.success("Transcription complete");
 
     } catch (err: any) {
       console.error("Transcription Error", err);
       setFiles(prev => prev.map(f =>
         f.id === id ? { ...f, transcriptionStatus: 'error' } : f
       ));
+      toast.error("Transcription failed");
     }
   };
 
@@ -280,8 +306,10 @@ const App: React.FC = () => {
       setProcessedResults(prev => [newResult, ...prev]);
       setViewingTranscript(null); // Close transcript modal
       setViewingProcessed(newResult); // Open processed result viewer
+      toast.success("Processing complete");
     } catch (err) {
       console.error("Processing Error", err);
+      toast.error("AI Processing failed");
     } finally {
       setIsProcessingTranscript(false);
     }
@@ -289,7 +317,14 @@ const App: React.FC = () => {
 
 
   const transcribeAll = useCallback(() => {
-    files.forEach(file => { if (file.status === 'pending' || (file.status === 'completed' && (!file.transcriptionStatus || file.transcriptionStatus === 'idle'))) transcribeFile(file.id); });
+    let count = 0;
+    files.forEach(file => {
+      if (file.status === 'pending' || (file.status === 'completed' && (!file.transcriptionStatus || file.transcriptionStatus === 'idle'))) {
+        transcribeFile(file.id);
+        count++;
+      }
+    });
+    if (count === 0 && !apiKey) toast.error("No API key or compatible files");
   }, [files, apiKey, transcribeFile]);
 
   const downloadTranscript = (id: string, format: 'txt' | 'md') => {
@@ -329,23 +364,26 @@ const App: React.FC = () => {
   const hasFiles = files.length > 0;
 
   return (
-    <div className={`app-container ${fontScale !== 1 ? 'scaled' : ''}`}>
+    <div className="min-h-screen bg-background text-foreground font-sans antialiased flex flex-col">
+      <Toaster />
       {showSplash && (
-        <div className={!isInitializing ? 'fade-out' : ''}>
+        <div className={cn("fixed inset-0 z-[100] transition-opacity duration-1000", !isInitializing ? 'opacity-0 pointer-events-none' : 'opacity-100')}>
           <SplashScreen />
         </div>
       )}
 
       {showIPhoneTip && (
-        <div className="iphone-tip glass-panel animate-slide-up">
-          <div className="flex items-center gap-3">
-            <div className="tip-icon">✨</div>
-            <div className="flex-1">
-              <p className="text-sm font-semibold">Install iConvert</p>
-              <p className="text-xs opacity-70">Tap the share icon and select "Add to Home Screen" for the best experience.</p>
+        <div className="fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-5">
+          <Card className="p-4 shadow-lg border-primary/20 bg-background/95 backdrop-blur">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">✨</div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold">Install iConvert</p>
+                <p className="text-xs text-muted-foreground">Tap the share icon and select "Add to Home Screen".</p>
+              </div>
+              <button onClick={() => setShowIPhoneTip(false)} className="text-muted-foreground hover:text-foreground">×</button>
             </div>
-            <button onClick={() => setShowIPhoneTip(false)} className="close-mini">×</button>
-          </div>
+          </Card>
         </div>
       )}
 
@@ -401,142 +439,140 @@ const App: React.FC = () => {
       />
 
 
-      <main className="main-content">
+      <main className="flex-1 container max-w-5xl mx-auto p-4 sm:p-6 lg:p-8 flex flex-col gap-6">
         {isInitializing ? (
-          <div className="state-container animate-fade-in">
-            <div className="spinner"></div>
-            <p className="state-text">{t.initializing}</p>
+          <div className="flex-1 flex flex-col items-center justify-center gap-4 animate-in fade-in duration-500">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            <p className="text-muted-foreground font-medium animate-pulse">{t.initializing}</p>
           </div>
         ) : !isFFmpegLoaded ? (
-          <div className="state-container">
-            <div className="error-card glass-panel">
-              <div className="error-icon">
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-              </div>
-              <h2 className="error-title">{t.engineError}</h2>
-              <p className="error-desc">{t.engineDesc}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="btn-retry"
-              >
-                {t.retry}
-              </button>
-            </div>
+          <div className="flex-1 flex items-center justify-center">
+            <Alert variant="destructive" className="max-w-md">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{t.engineError}</AlertTitle>
+              <AlertDescription>
+                {t.engineDesc}
+                <div className="mt-4">
+                  <Button onClick={() => window.location.reload()}>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    {t.retry}
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
           </div>
         ) : (
-          <div className="animate-slide-up">
-            {/* Main Studio Card */}
-            <div className="glass-panel main-panel">
+          <div className="flex flex-col gap-8 animate-in slide-in-from-bottom-5 duration-500">
+            {/* DropZone Section */}
+            <section className="w-full">
+              <DropZone onFilesAdded={onFilesAdded} compact={hasFiles} t={t} />
+            </section>
 
-              {/* Top Section: Upload */}
-              <div className={`upload-section ${hasFiles ? 'has-files' : ''}`}>
-                <DropZone onFilesAdded={onFilesAdded} compact={hasFiles} t={t} />
-              </div>
-
-              {/* Middle Section: Multiple Lists */}
-              {hasFiles && (
-                <div className="content-lists-container animate-fade-in">
-
-                  {/* List 1: Queue */}
-                  {files.some(f => f.transcriptionStatus !== 'done') && (
-                    <div className="queue-section mb-8">
-                      <div className="queue-header mb-2">
-                        <div className="queue-title-group">
-                          <span className="queue-label">{t.queue || 'Queue'}</span>
-                          <span className="queue-count">{files.filter(f => f.transcriptionStatus !== 'done').length}</span>
-                        </div>
-                      </div>
-                      <FileList
-                        files={files.filter(f => f.transcriptionStatus !== 'done')}
-                        onRemove={removeFile}
-                        onConvert={startConversion}
-                        onTranscribe={transcribeFile}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="queue"
-                      />
+            {/* Content Lists */}
+            {hasFiles && (
+              <div className="grid gap-8">
+                {/* Queue */}
+                {files.some(f => f.transcriptionStatus !== 'done') && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                        {t.queue || 'Queue'}
+                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                          {files.filter(f => f.transcriptionStatus !== 'done').length}
+                        </span>
+                      </h3>
                     </div>
-                  )}
-
-                  {/* List 2: Transcribed Audios */}
-                  {files.some(f => f.transcriptionStatus === 'done') && (
-                    <div className="transcribed-section mb-8">
-                      <div className="queue-header mb-2">
-                        <div className="queue-title-group">
-                          <span className="queue-label">Transcribed Audios</span>
-                          <span className="queue-count">{files.filter(f => f.transcriptionStatus === 'done').length}</span>
-                        </div>
-                      </div>
-                      <FileList
-                        files={files.filter(f => f.transcriptionStatus === 'done')}
-                        onRemove={removeFile}
-                        onViewTranscript={handleViewTranscript}
-                        onDownloadTranscript={downloadTranscript}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="transcribed"
-                      />
-                    </div>
-                  )}
-
-                  {/* List 3: Processed Results */}
-                  {processedResults.length > 0 && (
-                    <div className="processed-section mb-8">
-                      <div className="queue-header mb-2">
-                        <div className="queue-title-group">
-                          <span className="queue-label">Processed Results</span>
-                          <span className="queue-count">{processedResults.length}</span>
-                        </div>
-                      </div>
-                      <FileList
-                        processedResults={processedResults}
-                        onRemove={removeFile}
-                        onViewProcessed={handleViewProcessed}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="processed"
-                      />
-                    </div>
-                  )}
-
-                </div>
-              )}
-
-              {/* Bottom Section: Controls & Actions (only for queue) */}
-              {files.some(f => f.status === 'pending' || (f.status === 'completed' && f.transcriptionStatus === 'idle')) && (
-                <div className="controls-section border-t pt-6 mt-4">
-                  <div className="batch-actions">
-                    <button
-                      onClick={convertAll}
-                      disabled={!hasPending}
-                      className="btn-primary"
-                    >
-                      {t.convertToMp3}
-                    </button>
-                    <button
-                      onClick={transcribeAll}
-                      disabled={!hasPending && !files.some(f => f.status === 'completed' && f.transcriptionStatus === 'idle')}
-                      className="btn-primary"
-                    >
-                      {t.transcribeToText}
-                    </button>
+                    <FileList
+                      files={files.filter(f => f.transcriptionStatus !== 'done')}
+                      onRemove={removeFile}
+                      onConvert={startConversion}
+                      onTranscribe={transcribeFile}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="queue"
+                    />
                   </div>
+                )}
+
+                {/* Transcribed */}
+                {files.some(f => f.transcriptionStatus === 'done') && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                        Transcribed Audios
+                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                          {files.filter(f => f.transcriptionStatus === 'done').length}
+                        </span>
+                      </h3>
+                    </div>
+                    <FileList
+                      files={files.filter(f => f.transcriptionStatus === 'done')}
+                      onRemove={removeFile}
+                      onViewTranscript={handleViewTranscript}
+                      onDownloadTranscript={downloadTranscript}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="transcribed"
+                    />
+                  </div>
+                )}
+
+                {/* Processed Results */}
+                {processedResults.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                        Processed Results
+                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                          {processedResults.length}
+                        </span>
+                      </h3>
+                    </div>
+                    <FileList
+                      processedResults={processedResults}
+                      onRemove={removeFile}
+                      onViewProcessed={handleViewProcessed}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="processed"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sticky Controls Footer for Queue Actions */}
+            {files.some(f => f.status === 'pending' || (f.status === 'completed' && f.transcriptionStatus === 'idle')) && (
+              <div className="sticky bottom-4 z-40 bg-background/80 backdrop-blur-md p-4 rounded-xl border shadow-lg flex flex-wrap gap-4 items-center justify-center sm:justify-between animate-in slide-in-from-bottom-2">
+                <div className="text-sm font-medium text-muted-foreground hidden sm:block">
+                  Batch Actions
                 </div>
-              )}
-            </div>
-
-
-            <div className="footer-tip animate-fade-in">
-              <p>
-                iConvert Audio & Transcribe, by Bella Labs, V0.1.6
-              </p>
-            </div>
+                <div className="flex gap-3 w-full sm:w-auto">
+                  <Button
+                    className="flex-1 sm:flex-none"
+                    onClick={convertAll}
+                    disabled={!hasPending}
+                  >
+                    {t.convertToMp3}
+                  </Button>
+                  <Button
+                    className="flex-1 sm:flex-none"
+                    onClick={transcribeAll}
+                    disabled={!hasPending && !files.some(f => f.status === 'completed' && f.transcriptionStatus === 'idle')}
+                  >
+                    {t.transcribeToText}
+                  </Button>
+                </div>
+              </div>
+            )}
 
           </div>
         )}
       </main>
+
+      <footer className="py-6 text-center text-sm text-muted-foreground border-t">
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.0</p>
+      </footer>
     </div>
   );
 };
