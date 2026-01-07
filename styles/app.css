@@ -761,6 +761,29 @@ input {
     overflow: hidden;
 }
 
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg-sub);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-close-btn-header {
+    padding: 0.4rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+    line-height: 0;
+    opacity: 0.6;
+}
+
+.modal-close-btn-header:hover {
+    background: var(--color-bg);
+    opacity: 1;
+    color: var(--color-error);
+}
+
 .modal-card.full-width {
     max-width: 95vw;
 }
@@ -1422,12 +1445,6 @@ input {
     transform: translateX(1.25rem);
 }
 
-/* Batch Actions Layout */
-.batch-actions .btn-primary {
-    flex: 1;
-    padding: 0.85rem 1rem;
-}
-
 .controls-section {
     position: sticky;
     bottom: 0;
@@ -1435,10 +1452,28 @@ input {
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border-top: 1px solid var(--color-border);
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 1rem 1rem;
     margin: 0 -1.5rem -1.5rem -1.5rem;
-    /* Match main-content padding */
     z-index: 40;
+}
+
+.batch-actions {
+    display: flex;
+    gap: 1rem;
+    width: 100%;
+    flex-wrap: wrap;
+    /* Allow wrapping */
+}
+
+.batch-actions .btn-primary {
+    flex: 1;
+    min-width: 140px;
+    /* Ensure buttons don't get too small */
+    padding: 0.85rem 1rem;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.2;
+    height: auto;
 }
 
 /* Process Menu in Transcript */
@@ -1486,46 +1521,32 @@ input {
     line-height: 1;
 }
 
-.template-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
-}
-
-.template-card-btn {
+.template-list-compact {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
-    background: var(--color-bg-sub);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
-    transition: all 0.2s;
+    gap: 0.25rem;
 }
 
-.template-card-btn:hover {
-    transform: translateY(-4px);
-    border-color: var(--color-primary);
-    background: var(--color-primary-light);
-    box-shadow: var(--shadow-lg);
-}
-
-.template-card-icon {
-    width: 3rem;
-    height: 3rem;
-    background: var(--color-primary);
-    color: white;
-    border-radius: 1rem;
+.template-row-btn {
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 0.6rem 1rem;
+    background: var(--color-bg-sub);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+    text-align: left;
 }
 
-.template-card-name {
-    font-weight: 700;
-    font-size: 0.9rem;
-    text-align: center;
+.template-row-btn:hover {
+    background: var(--color-primary-light);
+    border-color: var(--color-primary);
+    transform: translateX(4px);
+}
+
+.template-row-name {
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
 .modal-close-btn-top {

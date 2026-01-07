@@ -122,20 +122,17 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                         <h4>{t.templates || 'Select Template'}</h4>
                                         <button className="close-mini" onClick={() => setIsMenuOpen(false)}>×</button>
                                     </div>
-                                    <div className="template-grid">
+                                    <div className="template-list-compact">
                                         {templates.map(tmp => (
                                             <button
                                                 key={tmp.id}
-                                                className="template-card-btn"
+                                                className="template-row-btn"
                                                 onClick={() => {
                                                     onProcess(tmp);
                                                     setIsMenuOpen(false);
                                                 }}
                                             >
-                                                <div className="template-card-icon">
-                                                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                                                </div>
-                                                <span className="template-card-name">{tmp.name}</span>
+                                                <span className="template-row-name">{tmp.name}</span>
                                             </button>
                                         ))}
                                     </div>
