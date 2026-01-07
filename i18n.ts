@@ -63,8 +63,8 @@ export const translations = {
     delete: 'Delete',
     cancel: 'Cancel',
     process: 'Process',
-    convertToMp3: 'Convert to MP3',
-    transcribeToText: 'Transcribe to Text',
+    convertToMp3: 'to MP3',
+    transcribeToText: 'Transcribe',
     processing: 'Processing...',
   },
   es: {
@@ -128,8 +128,8 @@ export const translations = {
     delete: 'Eliminar',
     cancel: 'Cancelar',
     process: 'Procesar',
-    convertToMp3: 'Convertir a MP3',
-    transcribeToText: 'Transcribir a Texto',
+    convertToMp3: 'a MP3',
+    transcribeToText: 'Transcribir',
     processing: 'Procesando...',
   }
 };

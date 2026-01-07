@@ -6,7 +6,7 @@ export const SplashScreen: React.FC = () => {
         <div className="splash-screen">
             <div className="splash-content">
                 <div className="splash-logo-container">
-                    <img src="bella-logo.png" alt="Bella Labs Logo" className="splash-logo" />
+                    <img src="/bella-logo.png" alt="Bella Labs Logo" className="splash-logo" />
                     <div className="splash-glow"></div>
                 </div>
                 <div className="splash-text">
