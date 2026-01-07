@@ -62,6 +62,12 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal-card full-window-modal" onClick={(e) => e.stopPropagation()}>
+                <button onClick={onClose} className="modal-close-btn-large">
+                    <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
                 {/* Line 1: Zoom Controls */}
                 <div className="modal-header-line-1">
                     <div className="font-controls">
@@ -79,14 +85,9 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                     </div>
                 </div>
 
-                {/* Line 2: Title & Close Button */}
+                {/* Line 2: Title */}
                 <div className="modal-header-line-2">
                     <h3 className="modal-title-main truncate">{fileName}</h3>
-                    <button onClick={onClose} className="modal-close-btn-large">
-                        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
                 </div>
 
                 <div className="modal-body-expanded">
