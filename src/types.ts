@@ -14,6 +14,15 @@ export interface AudioFile {
   duration?: number;
 }
 
+export interface DocumentFile {
+  id: string;
+  file: File;
+  name: string;
+  size: number;
+  content: string;
+  timestamp: number;
+}
+
 export interface ConversionOptions {
   bitrate: string;
   sampleRate: string;

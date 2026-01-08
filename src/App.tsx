@@ -6,10 +6,11 @@ import { FileList } from './components/FileList';
 
 import { SettingsModal } from './components/SettingsModal';
 import { TranscriptModal } from './components/TranscriptModal';
-import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult } from './types';
+import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult, DocumentFile } from './types';
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { GoogleGenAI } from "@google/genai";
+import mammoth from 'mammoth';
 import { SplashScreen } from './components/SplashScreen';
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ import { cn } from "@/lib/utils";
 
 const App: React.FC = () => {
   const [files, setFiles] = useState<AudioFile[]>([]);
+  const [documents, setDocuments] = useState<DocumentFile[]>([]);
   const [isFFmpegLoaded, setIsFFmpegLoaded] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
   const [showSplash, setShowSplash] = useState(true);
@@ -67,6 +69,14 @@ const App: React.FC = () => {
       set('iconvert_files', metadata);
     }
   }, [files, isInitializing]);
+
+  useEffect(() => {
+    if (!isInitializing) {
+      // Save documents
+      const docMetadata = documents.map(({ file, ...meta }) => meta);
+      set('iconvert_documents', docMetadata);
+    }
+  }, [documents, isInitializing]);
 
   useEffect(() => {
     if (!isInitializing) {
@@ -169,7 +179,27 @@ const App: React.FC = () => {
           if (savedHue !== undefined) setPrimaryHue(Number(savedHue));
         } catch (storageErr) {
           console.error("Storage loading error:", storageErr);
+        } catch (storageErr) {
+          console.error("Storage loading error:", storageErr);
           // Non-fatal, continue
+        }
+
+        try {
+          const savedDocs = await get('iconvert_documents');
+          if (Array.isArray(savedDocs)) {
+            const rehydratedDocs = await Promise.all(
+              savedDocs.map(async (meta: any) => {
+                try {
+                  const blob = await get(`iconvert_doc_data_${meta.id}`);
+                  if (blob) return { ...meta, file: blob as File };
+                  return { ...meta, content: "Error loading content" }; // Fallback
+                } catch (e) { return null; }
+              })
+            );
+            setDocuments(rehydratedDocs.filter(d => d !== null) as DocumentFile[]);
+          }
+        } catch (e) {
+          console.error("Doc storage error", e);
         }
 
         // B. Load FFmpeg Engine
@@ -244,27 +274,72 @@ const App: React.FC = () => {
   };
 
   const onFilesAdded = useCallback(async (newFiles: File[]) => {
-    const audioFiles: AudioFile[] = await Promise.all(newFiles.map(async file => {
-      const id = Math.random().toString(36).substring(7);
-      // Save binary data immediately to individual key
-      await set(`iconvert_file_data_${id}`, file);
+    const audioCandidates: File[] = [];
+    const docCandidates: File[] = [];
 
-      return {
-        id,
-        file,
-        name: file.name,
-        size: file.size,
-        status: 'pending',
-        progress: 0,
-        transcriptionStatus: 'idle',
-        duration: await getAudioDuration(file)
-      };
-    }));
-    setFiles(prev => [...prev, ...audioFiles]);
-    toast.success(`${newFiles.length} file(s) added`);
+    newFiles.forEach(f => {
+      if (f.type.startsWith('audio/') || f.type.startsWith('video/') || f.name.match(/\.(m4a|wav|opus|ogg|mp3|mp4|mov)$/i)) {
+        audioCandidates.push(f);
+      } else if (f.name.match(/\.(txt|md|docx)$/i)) {
+        docCandidates.push(f);
+      }
+    });
+
+    if (audioCandidates.length > 0) {
+      const audioFiles: AudioFile[] = await Promise.all(audioCandidates.map(async file => {
+        const id = Math.random().toString(36).substring(7);
+        // Save binary data immediately to individual key
+        await set(`iconvert_file_data_${id}`, file);
+
+        return {
+          id,
+          file,
+          name: file.name,
+          size: file.size,
+          status: 'pending',
+          progress: 0,
+          transcriptionStatus: 'idle',
+          duration: await getAudioDuration(file)
+        };
+      }));
+      setFiles(prev => [...prev, ...audioFiles]);
+    }
+
+    if (docCandidates.length > 0) {
+      const docFiles: DocumentFile[] = await Promise.all(docCandidates.map(async file => {
+        const id = Math.random().toString(36).substring(7);
+        await set(`iconvert_doc_data_${id}`, file);
+
+        let content = '';
+        try {
+          if (file.name.endsWith('.docx')) {
+            const arrayBuffer = await file.arrayBuffer();
+            const result = await mammoth.extractRawText({ arrayBuffer });
+            content = result.value;
+          } else {
+            content = await file.text();
+          }
+        } catch (e) {
+          console.error("Error reading doc", e);
+          content = "Error reading document content.";
+        }
+
+        return {
+          id,
+          file,
+          name: file.name,
+          size: file.size,
+          content,
+          timestamp: Date.now()
+        };
+      }));
+      setDocuments(prev => [...prev, ...docFiles]);
+    }
+
+    toast.success(`${audioCandidates.length + docCandidates.length} file(s) added`);
   }, []);
 
-  const removeFile = useCallback((id: string, type: 'audio' | 'processed' = 'audio') => {
+  const removeFile = useCallback((id: string, type: 'audio' | 'processed' | 'document' = 'audio') => {
     if (type === 'audio') {
       setFiles(prev => {
         const fileToRemove = prev.find(f => f.id === id);
@@ -287,8 +362,14 @@ const App: React.FC = () => {
         }
         return prev.filter(f => f.id !== id);
       });
-    } else {
+    } else if (type === 'processed') {
       setProcessedResults(prev => prev.filter(r => r.id !== id));
+    } else if (type === 'document') {
+      setDocuments(prev => {
+        const docToRemove = prev.find(d => d.id === id);
+        if (docToRemove) del(`iconvert_doc_data_${id}`);
+        return prev.filter(d => d.id !== id);
+      });
     }
   }, []);
 
@@ -456,6 +537,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleViewDocument = (id: string) => {
+    const doc = documents.find(d => d.id === id);
+    if (doc) {
+      setViewingTranscript({
+        id: doc.id,
+        name: doc.name,
+        content: doc.content
+      });
+    }
+  };
+
   const handleViewProcessed = (id: string) => {
     const result = processedResults.find(r => r.id === id);
     if (result) setViewingProcessed(result);
@@ -463,7 +555,7 @@ const App: React.FC = () => {
 
 
   const hasPending = files.some(f => f.status === 'pending');
-  const hasFiles = files.length > 0;
+  const hasFiles = files.length > 0 || documents.length > 0;
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans antialiased flex flex-col">
@@ -619,6 +711,28 @@ const App: React.FC = () => {
                   </div>
                 )}
 
+                {/* Documents Section */}
+                {documents.length > 0 && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                        Documents
+                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                          {documents.length}
+                        </span>
+                      </h3>
+                    </div>
+                    <FileList
+                      documents={documents}
+                      onRemove={(id) => removeFile(id, 'document')}
+                      onViewTranscript={handleViewDocument}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="documents"
+                    />
+                  </div>
+                )}
+
                 {/* Processed Results */}
                 {processedResults.length > 0 && (
                   <div className="space-y-4">
@@ -648,7 +762,6 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
         <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.4</p>
       </footer>

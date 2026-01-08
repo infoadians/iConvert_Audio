@@ -1,15 +1,15 @@
-
 import React from 'react';
-import { AudioFile, ProcessedResult } from '../types';
+import { AudioFile, ProcessedResult, DocumentFile } from '../types';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { FileAudio, CheckCircle, AlertTriangle, Eye, Trash2, Download, FileText, Music } from 'lucide-react';
+import { FileAudio, CheckCircle, AlertTriangle, Eye, Trash2, Download, FileText, Music, FileType } from 'lucide-react';
 
 interface FileListProps {
   files?: AudioFile[];
   processedResults?: ProcessedResult[];
-  onRemove: (id: string, type?: 'audio' | 'processed') => void;
+  documents?: DocumentFile[];
+  onRemove: (id: string, type?: 'audio' | 'processed' | 'document') => void;
   onConvert?: (id: string) => void;
   onTranscribe?: (id: string) => void;
   onDownloadTranscript?: (id: string, format: 'txt' | 'md') => void;
@@ -17,7 +17,7 @@ interface FileListProps {
   onViewProcessed?: (id: string) => void;
   hasApiKey: boolean;
   t: any;
-  type: 'queue' | 'transcribed' | 'processed';
+  type: 'queue' | 'transcribed' | 'processed' | 'documents';
 }
 
 const formatSize = (bytes: number) => {
@@ -38,6 +38,7 @@ const formatDuration = (seconds?: number) => {
 export const FileList: React.FC<FileListProps> = ({
   files = [],
   processedResults = [],
+  documents = [],
   onRemove,
   onConvert,
   onTranscribe,
@@ -74,6 +75,43 @@ export const FileList: React.FC<FileListProps> = ({
                   {t.view || 'View'}
                 </Button>
                 <Button variant="ghost" size="icon" onClick={() => onRemove(item.id, 'processed')} className="text-destructive hover:text-destructive/80">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (type === 'documents') {
+    return (
+      <div className="grid gap-3">
+        {documents.map((item) => (
+          <Card key={item.id} className="overflow-hidden">
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-4 overflow-hidden">
+                <div className="h-10 w-10 flex items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-500">
+                  <FileType className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-sm font-medium truncate">{item.name}</h4>
+                  <div className="text-xs text-muted-foreground mt-0.5 flex gap-2">
+                    <span>{formatSize(item.size)}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => onViewTranscript && onViewTranscript(item.id)}
+                >
+                  <Eye className="mr-2 h-3.5 w-3.5" />
+                  {t.view || 'View'}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => onRemove(item.id, 'document')} className="text-destructive hover:text-destructive/80">
                   <Trash2 className="h-4 w-4" />
                 </Button>
               </div>

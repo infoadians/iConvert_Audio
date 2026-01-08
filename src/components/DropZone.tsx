@@ -66,7 +66,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
         id="file-input-main"
         type="file"
         multiple
-        accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4"
+        accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4,.txt,.md,.docx"
         onChange={(e) => e.target.files && onFilesAdded(Array.from(e.target.files))}
         className="hidden"
       />

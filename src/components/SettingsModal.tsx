@@ -1,21 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Language } from '../i18n';
 import { ProcessTemplate } from '../types';
+import { PROCESSING_TEMPLATES, TemplateCategory } from '../data/templates';
 import { ColorPicker } from './ColorPicker';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Trash2, Edit2, Plus, Save, X } from 'lucide-react';
+import { Trash2, Edit2, Plus, Save, ChevronRight, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// We need a Textarea component, let's assume standard HTML textarea for now if shadcn Textarea isn't installed, 
-// but actually we can style it with Tailwind.
+import { Card } from "@/components/ui/card";
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -41,9 +38,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     templates, onSaveTemplates, fontScale, onSaveFontScale, t
 }) => {
     const [localKey, setLocalKey] = useState(apiKey);
+
+    // Custom Template State
+    const [isAddTemplateOpen, setIsAddTemplateOpen] = useState(false);
     const [editingTemplate, setEditingTemplate] = useState<ProcessTemplate | null>(null);
     const [newName, setNewName] = useState('');
     const [newPrompt, setNewPrompt] = useState('');
+
+    // Standard Template State
+    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+
 
     useEffect(() => {
         setLocalKey(apiKey);
@@ -65,12 +69,14 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         onSaveTemplates([...templates, newTemplate]);
         setNewName('');
         setNewPrompt('');
+        setIsAddTemplateOpen(false);
     };
 
     const handleEditTemplate = (template: ProcessTemplate) => {
         setEditingTemplate(template);
         setNewName(template.name);
         setNewPrompt(template.prompt);
+        setIsAddTemplateOpen(true);
     };
 
     const handleUpdateTemplate = () => {
@@ -82,22 +88,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         setEditingTemplate(null);
         setNewName('');
         setNewPrompt('');
+        setIsAddTemplateOpen(false);
     };
 
     const handleDeleteTemplate = (id: string) => {
         onSaveTemplates(templates.filter(t => t.id !== id));
     };
 
+    const toggleCategory = (cat: string) => {
+        setExpandedCategories(prev =>
+            prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]
+        );
+    };
+
+    // Group Standard Templates by Category
+    const categories: TemplateCategory[] = ['Generales', 'Gestión y Negocios', 'Contenido y Comunicación', 'Análisis y Estudio'];
+
+
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90dvh] overflow-hidden p-0 rounded-xl flex flex-col gap-0">
+            <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[90dvh] overflow-hidden p-0 rounded-xl flex flex-col gap-0">
                 <DialogHeader className="p-6 pb-2 sm:p-0">
                     <DialogTitle>{t.settings}</DialogTitle>
                 </DialogHeader>
 
                 <div className="grid gap-6 p-6 sm:p-0 overflow-y-auto flex-1">
                     {/* Appearance Section */}
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.appearance}</h4>
 
                         {/* Dark Mode */}
@@ -110,7 +127,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                             />
                         </div>
 
-                        {/* Theme Color - Moved to same line */}
+                        {/* Theme Color */}
                         <div className="flex items-center justify-between">
                             <Label>{t.themeColor}</Label>
                             <ColorPicker primaryHue={primaryHue} setPrimaryHue={setPrimaryHue} t={t} />
@@ -145,7 +162,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div className="border-t my-1" />
 
-                    {/* AI Section - Compact */}
+                    {/* AI Section */}
                     <div className="space-y-3">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.apiKeyTitle}</h4>
                         <div className="flex gap-2 items-end">
@@ -171,53 +188,113 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div className="border-t my-1" />
 
-                    {/* Templates Section */}
-                    <div className="space-y-4">
-                        <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.templates}</h4>
-                        <div className="max-h-[150px] overflow-y-auto space-y-2 border rounded-md p-2">
-                            {templates.map(tmp => (
-                                <div key={tmp.id} className="flex items-center justify-between p-2 hover:bg-muted/50 rounded-sm">
-                                    <span className="text-sm font-medium">{tmp.name}</span>
-                                    <div className="flex gap-1">
-                                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleEditTemplate(tmp)}>
-                                            <Edit2 className="h-3 w-3" />
+                    {/* TEMPLATES SECTION */}
+                    <div className="space-y-6">
+
+                        {/* CUSTOM TEMPLATES */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-bold leading-none text-primary tracking-wide">CUSTOM TRANSCRIPTION TEMPLATES</h4>
+                                <Dialog open={isAddTemplateOpen} onOpenChange={(open) => {
+                                    if (!open) { setEditingTemplate(null); setNewName(''); setNewPrompt(''); }
+                                    setIsAddTemplateOpen(open);
+                                }}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="icon" className="h-6 w-6 rounded-full" onClick={() => { setEditingTemplate(null); }}>
+                                            <Plus className="h-4 w-4" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => handleDeleteTemplate(tmp.id)}>
-                                            <Trash2 className="h-3 w-3" />
-                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px]">
+                                        <DialogHeader>
+                                            <DialogTitle>{editingTemplate ? t.editTemplate : t.addTemplate}</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="name">{t.templateName}</Label>
+                                                <Input
+                                                    id="name"
+                                                    value={newName}
+                                                    onChange={(e) => setNewName(e.target.value)}
+                                                    placeholder="My Custom Template"
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="prompt">{t.templatePrompt}</Label>
+                                                <textarea
+                                                    id="prompt"
+                                                    value={newPrompt}
+                                                    onChange={(e) => setNewPrompt(e.target.value)}
+                                                    placeholder="Instructions for the AI..."
+                                                    className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                                />
+                                            </div>
+                                            <Button onClick={editingTemplate ? handleUpdateTemplate : handleAddTemplate}>
+                                                <Save className="mr-2 h-4 w-4" />
+                                                {editingTemplate ? t.save : t.addTemplate}
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            </div>
+
+                            <div className="space-y-2">
+                                {templates.map(tmp => (
+                                    <div key={tmp.id} className="group flex items-center justify-between p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
+                                        <span className="text-sm font-medium">{tmp.name}</span>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTemplate(tmp)}>
+                                                <Edit2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDeleteTemplate(tmp.id)}>
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                            {templates.length === 0 && <p className="text-xs text-muted-foreground text-center py-2">No templates yet</p>}
+                                ))}
+                                {templates.length === 0 && <p className="text-xs text-muted-foreground py-2 italic">No custom templates added.</p>}
+                            </div>
                         </div>
 
-                        <div className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 space-y-3">
+                        {/* STANDARD TEMPLATES */}
+                        <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h5 className="text-xs font-bold uppercase opacity-70">
-                                    {editingTemplate ? t.editTemplate : t.addTemplate}
-                                </h5>
-                                {editingTemplate && (
-                                    <Button variant="ghost" size="sm" onClick={() => { setEditingTemplate(null); setNewName(''); setNewPrompt(''); }}>
-                                        Cancel
-                                    </Button>
-                                )}
+                                <h4 className="text-sm font-bold leading-none text-primary tracking-wide">STANDARD TRANSCRIPTION TEMPLATES</h4>
+                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full opacity-50 cursor-default">
+                                    <Plus className="h-4 w-4" />
+                                </Button>
                             </div>
-                            <Input
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                placeholder={t.templateName}
-                            />
-                            <textarea
-                                value={newPrompt}
-                                onChange={(e) => setNewPrompt(e.target.value)}
-                                placeholder={t.templatePrompt}
-                                className="flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                            />
-                            <Button onClick={editingTemplate ? handleUpdateTemplate : handleAddTemplate} className="w-full">
-                                {editingTemplate ? <Save className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
-                                {editingTemplate ? t.save : t.addTemplate}
-                            </Button>
+
+                            <div className="space-y-2">
+                                {categories.map(category => (
+                                    <Card key={category} className="overflow-hidden border-none shadow-none bg-muted/20">
+                                        <div
+                                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/40 transition-colors"
+                                            onClick={() => toggleCategory(category)}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {expandedCategories.includes(category) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                <span className="text-sm font-medium">{category}</span>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                                                <Plus className="h-3 w-3" />
+                                            </Button>
+                                        </div>
+
+                                        {expandedCategories.includes(category) && (
+                                            <div className="px-4 pb-3 space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                                {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
+                                                    <div key={t.id} className="text-sm p-2 rounded-md bg-background border">
+                                                        <div className="font-medium text-primary">{t.name}</div>
+                                                        <div className="text-xs text-muted-foreground mt-1">({t.objective})</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </Card>
+                                ))}
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </DialogContent>
