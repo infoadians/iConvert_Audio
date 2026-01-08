@@ -352,7 +352,7 @@ const App: React.FC = () => {
       const ai = new GoogleGenAI({ apiKey });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp', // Updated model
+        model: 'gemini-3.0-flash',
         contents: [
           {
             role: 'user',
@@ -386,7 +386,7 @@ const App: React.FC = () => {
     try {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-3.0-flash',
         contents: [
           {
             role: 'user',
