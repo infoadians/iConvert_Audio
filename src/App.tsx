@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { get, set } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 import { Header } from './components/Header';
 import { DropZone } from './components/DropZone';
 import { FileList } from './components/FileList';
@@ -62,7 +62,9 @@ const App: React.FC = () => {
   // Persistence: Save state when changed
   useEffect(() => {
     if (!isInitializing) {
-      set('iconvert_files', files);
+      // Save metadata only to iconvert_files to avoid size limits/corruption
+      const metadata = files.map(({ file, ...meta }) => meta);
+      set('iconvert_files', metadata);
     }
   }, [files, isInitializing]);
 
@@ -144,7 +146,24 @@ const App: React.FC = () => {
             get('iconvert_primary_hue')
           ]);
 
-          if (Array.isArray(savedFiles)) setFiles(savedFiles);
+          if (Array.isArray(savedFiles)) {
+            // Rehydrate files with their binary data from individual keys
+            const rehydratedFiles = await Promise.all(
+              savedFiles.map(async (meta: any) => {
+                try {
+                  const blob = await get(`iconvert_file_data_${meta.id}`);
+                  if (blob) {
+                    // Reconstruct File object if possible, or just use Blob
+                    return { ...meta, file: blob as File };
+                  }
+                  return { ...meta, status: 'error', error: 'File data lost' };
+                } catch (e) {
+                  return { ...meta, status: 'error', error: 'Loading error' };
+                }
+              })
+            );
+            setFiles(rehydratedFiles);
+          }
           if (Array.isArray(savedResults)) setProcessedResults(savedResults);
           if (savedIsDark !== undefined) setIsDark(!!savedIsDark);
           if (savedHue !== undefined) setPrimaryHue(Number(savedHue));
@@ -225,16 +244,22 @@ const App: React.FC = () => {
   };
 
   const onFilesAdded = useCallback(async (newFiles: File[]) => {
-    const audioFiles: AudioFile[] = await Promise.all(newFiles.map(async file => ({
-      id: Math.random().toString(36).substring(7),
-      file,
-      name: file.name,
-      size: file.size,
-      status: 'pending',
-      progress: 0,
-      transcriptionStatus: 'idle',
-      duration: await getAudioDuration(file)
-    })));
+    const audioFiles: AudioFile[] = await Promise.all(newFiles.map(async file => {
+      const id = Math.random().toString(36).substring(7);
+      // Save binary data immediately to individual key
+      await set(`iconvert_file_data_${id}`, file);
+
+      return {
+        id,
+        file,
+        name: file.name,
+        size: file.size,
+        status: 'pending',
+        progress: 0,
+        transcriptionStatus: 'idle',
+        duration: await getAudioDuration(file)
+      };
+    }));
     setFiles(prev => [...prev, ...audioFiles]);
     toast.success(`${newFiles.length} file(s) added`);
   }, []);
@@ -243,17 +268,22 @@ const App: React.FC = () => {
     if (type === 'audio') {
       setFiles(prev => {
         const fileToRemove = prev.find(f => f.id === id);
-        if (fileToRemove && fileToRemove.transcriptionStatus === 'done' && fileToRemove.transcriptionResult) {
-          // Archive the transcript before deleting
-          const archivedResult: ProcessedResult = {
-            id: Math.random().toString(36).substring(7),
-            audioFileName: fileToRemove.name,
-            templateName: 'Original Transcript',
-            result: fileToRemove.transcriptionResult,
-            timestamp: Date.now()
-          };
-          setProcessedResults(p => [archivedResult, ...p]);
-          toast.info("Transcribed text saved to results");
+        if (fileToRemove) {
+          // Cleanup binary data
+          del(`iconvert_file_data_${id}`).catch(err => console.warn("Cleanup error", err));
+
+          if (fileToRemove.transcriptionStatus === 'done' && fileToRemove.transcriptionResult) {
+            // Archive the transcript before deleting
+            const archivedResult: ProcessedResult = {
+              id: Math.random().toString(36).substring(7),
+              audioFileName: fileToRemove.name,
+              templateName: 'Original Transcript',
+              result: fileToRemove.transcriptionResult,
+              timestamp: Date.now()
+            };
+            setProcessedResults(p => [archivedResult, ...p]);
+            toast.info("Transcribed text saved to results");
+          }
         }
         return prev.filter(f => f.id !== id);
       });
@@ -613,37 +643,14 @@ const App: React.FC = () => {
               </div>
             )}
 
-            {/* Sticky Controls Footer for Queue Actions */}
-            {files.some(f => f.status === 'pending' || (f.status === 'completed' && f.transcriptionStatus === 'idle')) && (
-              <div className="sticky bottom-4 z-40 bg-background/80 backdrop-blur-md p-4 rounded-xl border shadow-lg flex flex-wrap gap-4 items-center justify-center sm:justify-between animate-in slide-in-from-bottom-2">
-                <div className="text-sm font-medium text-muted-foreground hidden sm:block">
-                  Batch Actions
-                </div>
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <Button
-                    className="flex-1 sm:flex-none"
-                    onClick={convertAll}
-                    disabled={!hasPending}
-                  >
-                    {t.convertToMp3}
-                  </Button>
-                  <Button
-                    className="flex-1 sm:flex-none"
-                    onClick={transcribeAll}
-                    disabled={!hasPending && !files.some(f => f.status === 'completed' && f.transcriptionStatus === 'idle')}
-                  >
-                    {t.transcribeToText}
-                  </Button>
-                </div>
-              </div>
-            )}
+
 
           </div>
         )}
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.2</p>
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.3</p>
       </footer>
     </div>
   );
