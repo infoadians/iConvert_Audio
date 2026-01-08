@@ -650,7 +650,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.3</p>
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.2.4</p>
       </footer>
     </div>
   );
