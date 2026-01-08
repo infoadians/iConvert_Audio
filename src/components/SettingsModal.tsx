@@ -90,7 +90,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px] w-full h-full sm:h-auto sm:max-h-[85vh] overflow-y-auto p-0 sm:p-6 flex flex-col gap-0">
+            <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90dvh] overflow-hidden p-0 rounded-xl flex flex-col gap-0">
                 <DialogHeader className="p-6 pb-2 sm:p-0">
                     <DialogTitle>{t.settings}</DialogTitle>
                 </DialogHeader>

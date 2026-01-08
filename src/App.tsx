@@ -117,34 +117,65 @@ const App: React.FC = () => {
 
     const storedFontScale = localStorage.getItem('iconvert_font_scale');
     if (storedFontScale) setFontScale(parseFloat(storedFontScale));
+  }, []);
 
-    const init = async () => {
+  // Initialization Logic
+  useEffect(() => {
+    // 1. Safety Timeout: Force app to load after 5s no matter what
+    const safetyTimeout = setTimeout(() => {
+      setIsInitializing((prev) => {
+        if (prev) {
+          console.warn("Initialization timed out, forcing load.");
+          setShowSplash(false);
+          return false;
+        }
+        return prev;
+      });
+    }, 5000);
+
+    const initApp = async () => {
       try {
-        // Load persisted data
-        const [savedFiles, savedResults, savedIsDark, savedHue] = await Promise.all([
-          get('iconvert_files'),
-          get('iconvert_results'),
-          get('iconvert_is_dark'),
-          get('iconvert_primary_hue')
-        ]);
+        // A. Load Persisted Data
+        try {
+          const [savedFiles, savedResults, savedIsDark, savedHue] = await Promise.all([
+            get('iconvert_files'),
+            get('iconvert_results'),
+            get('iconvert_is_dark'),
+            get('iconvert_primary_hue')
+          ]);
 
-        if (savedFiles) setFiles(savedFiles);
-        if (savedResults) setProcessedResults(savedResults);
-        if (savedIsDark !== undefined) setIsDark(savedIsDark);
-        if (savedHue !== undefined) setPrimaryHue(savedHue);
+          if (Array.isArray(savedFiles)) setFiles(savedFiles);
+          if (Array.isArray(savedResults)) setProcessedResults(savedResults);
+          if (savedIsDark !== undefined) setIsDark(!!savedIsDark);
+          if (savedHue !== undefined) setPrimaryHue(Number(savedHue));
+        } catch (storageErr) {
+          console.error("Storage loading error:", storageErr);
+          // Non-fatal, continue
+        }
 
-        await ffmpegManager.load();
-        setIsFFmpegLoaded(true);
-      } catch (error: any) {
-        setInitError(error.message || "Engine Error");
+        // B. Load FFmpeg Engine
+        try {
+          await ffmpegManager.load();
+          setIsFFmpegLoaded(true);
+        } catch (engineErr: any) {
+          console.error("FFmpeg loading error:", engineErr);
+          setInitError(engineErr.message || "Engine failed to load");
+        }
+
+      } catch (err) {
+        console.error("Fatal initialization error:", err);
       } finally {
+        // C. Finish Init
+        clearTimeout(safetyTimeout);
+        // Small delay for smooth splash transition
         setTimeout(() => {
           setIsInitializing(false);
-          setTimeout(() => setShowSplash(false), 800); // Wait for fade-out animation
-        }, 1500); // Ensure splash is visible for at least 1.5s
+          setTimeout(() => setShowSplash(false), 800);
+        }, 1000);
       }
     };
-    init();
+
+    initApp();
 
     // Check for iPhone / PWA
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
@@ -153,6 +184,8 @@ const App: React.FC = () => {
     if (isIOS && !isPWA) {
       setTimeout(() => setShowIPhoneTip(true), 3000);
     }
+
+    return () => clearTimeout(safetyTimeout);
   }, []);
 
   const handleSaveKey = (key: string) => {
