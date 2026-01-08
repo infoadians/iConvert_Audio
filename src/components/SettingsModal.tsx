@@ -40,49 +40,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     primaryHue, setPrimaryHue, apiKey, onSaveKey,
     templates, onSaveTemplates, fontScale, onSaveFontScale, t
 }) => {
-    const [localKey, setLocalKey] = useState(apiKey);
-    const [keySaved, setKeySaved] = useState(false);
-    const [editingTemplate, setEditingTemplate] = useState<ProcessTemplate | null>(null);
-    const [newName, setNewName] = useState('');
-    const [newPrompt, setNewPrompt] = useState('');
+    useEffect(() => {
+        setLocalKey(apiKey);
+    }, [apiKey]);
 
     const handleSaveKey = () => {
         onSaveKey(localKey);
-        setKeySaved(true);
-        setTimeout(() => setKeySaved(false), 2000);
     };
 
-    const handleAddTemplate = () => {
-        if (!newName || !newPrompt) return;
-        const newTemp: ProcessTemplate = {
-            id: Math.random().toString(36).substring(7),
-            name: newName,
-            prompt: newPrompt
-        };
-        onSaveTemplates([...templates, newTemp]);
-        setNewName('');
-        setNewPrompt('');
-    };
+    const isKeyUnchanged = localKey === apiKey;
 
-    const handleDeleteTemplate = (id: string) => {
-        onSaveTemplates(templates.filter(t => t.id !== id));
-    };
-
-    const handleEditTemplate = (template: ProcessTemplate) => {
-        setEditingTemplate(template);
-        setNewName(template.name);
-        setNewPrompt(template.prompt);
-    };
-
-    const handleUpdateTemplate = () => {
-        if (!editingTemplate || !newName || !newPrompt) return;
-        onSaveTemplates(templates.map(tmp =>
-            tmp.id === editingTemplate.id ? { ...tmp, name: newName, prompt: newPrompt } : tmp
-        ));
-        setEditingTemplate(null);
-        setNewName('');
-        setNewPrompt('');
-    };
+    // ... template handlers ...
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -91,10 +59,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <DialogTitle>{t.settings}</DialogTitle>
                 </DialogHeader>
 
-                <div className="grid gap-6 py-4">
+                <div className="grid gap-6 py-2">
                     {/* Appearance Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.appearance}</h4>
+
+                        {/* Dark Mode */}
                         <div className="flex items-center justify-between">
                             <Label htmlFor="dark-mode">{t.darkMode}</Label>
                             <Switch
@@ -103,10 +73,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 onCheckedChange={setIsDark}
                             />
                         </div>
-                        <div className="space-y-2">
+
+                        {/* Theme Color - Moved to same line */}
+                        <div className="flex items-center justify-between">
                             <Label>{t.themeColor}</Label>
                             <ColorPicker primaryHue={primaryHue} setPrimaryHue={setPrimaryHue} t={t} />
                         </div>
+
                         <div className="flex items-center justify-between">
                             <Label>{t.language}</Label>
                             <Select value={lang} onValueChange={(val: Language) => setLang(val)}>
@@ -134,25 +107,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
                     </div>
 
-                    <div className="border-t my-2" />
+                    <div className="border-t my-1" />
 
-                    {/* AI Section */}
-                    <div className="space-y-4">
+                    {/* AI Section - Compact */}
+                    <div className="space-y-3">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.apiKeyTitle}</h4>
-                        <div className="flex gap-2">
-                            <Input
-                                type="password"
-                                value={localKey}
-                                onChange={(e) => setLocalKey(e.target.value)}
-                                placeholder={t.apiKeyPlaceholder}
-                            />
-                            <Button onClick={handleSaveKey} variant={keySaved ? "outline" : "default"}>
-                                {keySaved ? 'Saved' : t.saveKey}
+                        <div className="flex gap-2 items-end">
+                            <div className="grid w-full gap-1.5">
+                                <Input
+                                    type="password"
+                                    value={localKey}
+                                    onChange={(e) => setLocalKey(e.target.value)}
+                                    placeholder={t.apiKeyPlaceholder}
+                                    className="h-9"
+                                />
+                            </div>
+                            <Button
+                                onClick={handleSaveKey}
+                                size="sm"
+                                disabled={isKeyUnchanged}
+                                className={cn("h-9", isKeyUnchanged ? "opacity-50" : "")}
+                            >
+                                {isKeyUnchanged ? 'Saved' : t.saveKey}
                             </Button>
                         </div>
                     </div>
 
-                    <div className="border-t my-2" />
+                    <div className="border-t my-1" />
 
                     {/* Templates Section */}
                     <div className="space-y-4">

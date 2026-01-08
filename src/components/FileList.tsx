@@ -120,7 +120,7 @@ export const FileList: React.FC<FileListProps> = ({
                   <span>{formatSize(item.size)}</span>
                   {item.duration && <span>• {formatDuration(item.duration)}</span>}
 
-                  {item.transcriptionStatus === 'processing' && <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">{t.transcribing}</span>}
+                  {item.transcriptionStatus === 'processing' && <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap">{t.transcribing}</span>}
                   {item.status === 'completed' && type === 'queue' && <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Converted</span>}
                   {item.transcriptionStatus === 'done' && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-500 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Transcribed</span>}
                 </div>

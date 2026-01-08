@@ -61,10 +61,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Only toggle the class, let CSS handle colors
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (isDark) {
       document.documentElement.classList.add('dark');
+      if (metaThemeColor) metaThemeColor.setAttribute('content', '#0f172a'); // Slate-900 (Dark background)
     } else {
       document.documentElement.classList.remove('dark');
+      if (metaThemeColor) metaThemeColor.setAttribute('content', '#f8fafc'); // Slate-50 (Light background)
     }
   }, [isDark]);
 
@@ -271,7 +274,7 @@ const App: React.FC = () => {
             role: 'user',
             parts: [
               { inlineData: { mimeType: targetFile.file.type || 'audio/mp3', data: base64Data } },
-              { text: "Transcribir el audio adjunto, bucando reproducir fielmente lo dicho. Por lo tanto, sin agregar ni quitar palabras.  Únicamente agregar puntuación y agrupar en párrafos cortos de 4 o menos oraciones" }
+              { text: "Transcribir el audio adjunto de forma literal, sin agregar ni eliminar palabras, solamente agregar puntuación y agrupar en parrafos cortos, preferiblemente, de 4 o menos oraciones." }
             ]
           }
         ]
@@ -304,7 +307,7 @@ const App: React.FC = () => {
           {
             role: 'user',
             parts: [
-              { text: `Background Text:\n${viewingTranscript.content}\n\nTask: ${template.prompt}` }
+              { text: `Background Text:\n${viewingTranscript.content}\n\nTask (Responder en el idioma e instrucciones del prompt): ${template.prompt}` }
             ]
           }
         ]
