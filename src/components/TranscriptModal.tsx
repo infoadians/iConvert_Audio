@@ -83,7 +83,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0 gap-0">
+            <DialogContent className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[90vw] h-[90vh] max-w-4xl flex flex-col p-0 gap-0">
                 {/* Header Line 1: Controls */}
                 <div className="flex items-center justify-between border-b px-6 py-3 bg-muted/30">
                     <div className="flex items-center gap-2">

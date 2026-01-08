@@ -60,7 +60,7 @@ export const FileList: React.FC<FileListProps> = ({
                   <CheckCircle className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-sm font-medium truncate">{item.audioFileName}</h4>
+                  <h4 className="text-sm font-medium break-words pr-2">{item.audioFileName}</h4>
                   <div className="text-xs text-muted-foreground mt-0.5 inline-flex items-center px-2 py-0.5 rounded-full bg-secondary">
                     {item.templateName}
                   </div>
@@ -96,7 +96,7 @@ export const FileList: React.FC<FileListProps> = ({
                   <FileType className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-sm font-medium truncate">{item.name}</h4>
+                  <h4 className="text-sm font-medium break-words pr-2">{item.name}</h4>
                   <div className="text-xs text-muted-foreground mt-0.5 flex gap-2">
                     <span>{formatSize(item.size)}</span>
                   </div>
@@ -153,7 +153,7 @@ export const FileList: React.FC<FileListProps> = ({
               </div>
 
               <div className="flex-1 min-w-0">
-                <h4 className="text-sm font-medium truncate">{item.name}</h4>
+                <h4 className="text-sm font-medium break-words pr-2">{item.name}</h4>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 flex-wrap">
                   <span>{formatSize(item.size)}</span>
                   {item.duration && <span>• {formatDuration(item.duration)}</span>}
@@ -176,15 +176,14 @@ export const FileList: React.FC<FileListProps> = ({
                       {t.convert || "Convert"}
                     </Button>
                   )}
-                  {item.status === 'completed' && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && (
+                  {item.status === 'completed' && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && item.transcriptionStatus !== 'processing' && (
                     <Button
                       variant="secondary"
                       size="sm"
                       onClick={() => onTranscribe(item.id)}
-                      disabled={item.transcriptionStatus === 'processing'}
                     >
                       <FileText className="mr-2 h-3.5 w-3.5" />
-                      {item.transcriptionStatus === 'processing' ? t.processing : t.transcribe}
+                      {t.transcribe}
                     </Button>
                   )}
                   {item.status === 'completed' && item.outputUrl && (

@@ -57,8 +57,8 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
     <div
       onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}
       className={cn(
-        "relative group border-2 border-dashed rounded-xl p-10 transition-all duration-200 ease-in-out cursor-pointer flex flex-col items-center justify-center text-center gap-4",
-        isDragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+        "relative group border-2 border-dashed rounded-xl p-10 transition-all duration-200 ease-in-out cursor-pointer flex flex-col items-center justify-center text-center gap-4 bg-primary/5",
+        isDragging ? "border-primary scale-[1.01]" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-primary/10"
       )}
       onClick={() => document.getElementById('file-input-main')?.click()}
     >
@@ -66,20 +66,20 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
         id="file-input-main"
         type="file"
         multiple
-        accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4,.txt,.md,.docx"
+        accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4,.txt,.md,.docx,.pdf"
         onChange={(e) => e.target.files && onFilesAdded(Array.from(e.target.files))}
         className="hidden"
       />
 
       <div className={cn("h-16 w-16 mb-2 rounded-full flex items-center justify-center transition-colors",
-        isDragging ? "bg-primary/20 text-primary" : "bg-muted text-muted-foreground group-hover:text-primary group-hover:bg-primary/10")}>
+        isDragging ? "bg-primary/20 text-primary" : "bg-primary/10 text-primary group-hover:bg-primary/20")}>
         <Upload className="h-8 w-8" />
       </div>
 
       <div className="space-y-1">
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-xl font-bold tracking-tight">
           {t.dragDrop || "Drag & drop audio, DOCX, TXT, PDF, MD files here, or click to select"}
-        </h3><p className="text-sm text-muted-foreground max-w-xs mx-auto text-balance">{t.dropSubtitle}</p>
+        </h3><p className="text-base text-muted-foreground max-w-xs mx-auto text-balance">{t.dropSubtitle}</p>
       </div>
 
       <div className="mt-2">

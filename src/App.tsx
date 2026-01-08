@@ -21,7 +21,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Plus, Minus } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +62,18 @@ const App: React.FC = () => {
 
   // Global Font Scale (0.5 to 2.0)
   const [fontScale, setFontScale] = useState(1.0);
+
+  // Collapsible Sections State
+  const [expandedSections, setExpandedSections] = useState({
+    queue: true,
+    transcribed: true,
+    documents: true,
+    processed: true
+  });
+
+  const toggleSection = (section: keyof typeof expandedSections) => {
+    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
@@ -674,16 +686,21 @@ const App: React.FC = () => {
                           {files.filter(f => f.transcriptionStatus !== 'done').length}
                         </span>
                       </h3>
+                      <Button variant="ghost" size="sm" onClick={() => toggleSection('queue')} className="h-8 w-8 p-0">
+                        {expandedSections.queue ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                      </Button>
                     </div>
-                    <FileList
-                      files={files.filter(f => f.transcriptionStatus !== 'done')}
-                      onRemove={removeFile}
-                      onConvert={startConversion}
-                      onTranscribe={transcribeFile}
-                      hasApiKey={!!apiKey}
-                      t={t}
-                      type="queue"
-                    />
+                    {expandedSections.queue && (
+                      <FileList
+                        files={files.filter(f => f.transcriptionStatus !== 'done')}
+                        onRemove={removeFile}
+                        onConvert={startConversion}
+                        onTranscribe={transcribeFile}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="queue"
+                      />
+                    )}
                   </div>
                 )}
 
@@ -697,16 +714,21 @@ const App: React.FC = () => {
                           {files.filter(f => f.transcriptionStatus === 'done').length}
                         </span>
                       </h3>
+                      <Button variant="ghost" size="sm" onClick={() => toggleSection('transcribed')} className="h-8 w-8 p-0">
+                        {expandedSections.transcribed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                      </Button>
                     </div>
-                    <FileList
-                      files={files.filter(f => f.transcriptionStatus === 'done')}
-                      onRemove={removeFile}
-                      onViewTranscript={handleViewTranscript}
-                      onDownloadTranscript={downloadTranscript}
-                      hasApiKey={!!apiKey}
-                      t={t}
-                      type="transcribed"
-                    />
+                    {expandedSections.transcribed && (
+                      <FileList
+                        files={files.filter(f => f.transcriptionStatus === 'done')}
+                        onRemove={removeFile}
+                        onViewTranscript={handleViewTranscript}
+                        onDownloadTranscript={downloadTranscript}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="transcribed"
+                      />
+                    )}
                   </div>
                 )}
 
@@ -720,15 +742,20 @@ const App: React.FC = () => {
                           {documents.length}
                         </span>
                       </h3>
+                      <Button variant="ghost" size="sm" onClick={() => toggleSection('documents')} className="h-8 w-8 p-0">
+                        {expandedSections.documents ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                      </Button>
                     </div>
-                    <FileList
-                      documents={documents}
-                      onRemove={(id) => removeFile(id, 'document')}
-                      onViewTranscript={handleViewDocument}
-                      hasApiKey={!!apiKey}
-                      t={t}
-                      type="documents"
-                    />
+                    {expandedSections.documents && (
+                      <FileList
+                        documents={documents}
+                        onRemove={(id) => removeFile(id, 'document')}
+                        onViewTranscript={handleViewDocument}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="documents"
+                      />
+                    )}
                   </div>
                 )}
 
@@ -742,15 +769,20 @@ const App: React.FC = () => {
                           {processedResults.length}
                         </span>
                       </h3>
+                      <Button variant="ghost" size="sm" onClick={() => toggleSection('processed')} className="h-8 w-8 p-0">
+                        {expandedSections.processed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                      </Button>
                     </div>
-                    <FileList
-                      processedResults={processedResults}
-                      onRemove={removeFile}
-                      onViewProcessed={handleViewProcessed}
-                      hasApiKey={!!apiKey}
-                      t={t}
-                      type="processed"
-                    />
+                    {expandedSections.processed && (
+                      <FileList
+                        processedResults={processedResults}
+                        onRemove={removeFile}
+                        onViewProcessed={handleViewProcessed}
+                        hasApiKey={!!apiKey}
+                        t={t}
+                        type="processed"
+                      />
+                    )}
                   </div>
                 )}
               </div>
