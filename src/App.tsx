@@ -179,8 +179,6 @@ const App: React.FC = () => {
           if (savedHue !== undefined) setPrimaryHue(Number(savedHue));
         } catch (storageErr) {
           console.error("Storage loading error:", storageErr);
-        } catch (storageErr) {
-          console.error("Storage loading error:", storageErr);
           // Non-fatal, continue
         }
 
