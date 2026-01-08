@@ -376,7 +376,7 @@ const App: React.FC = () => {
       setFiles(prev => prev.map(f =>
         f.id === id ? { ...f, transcriptionStatus: 'error' } : f
       ));
-      toast.error("Transcription failed");
+      toast.error(`Transcription failed: ${err.message || 'Unknown error'}`);
     }
   };
 
@@ -409,9 +409,9 @@ const App: React.FC = () => {
       setViewingTranscript(null); // Close transcript modal
       setViewingProcessed(newResult); // Open processed result viewer
       toast.success("Processing complete");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Processing Error", err);
-      toast.error("AI Processing failed");
+      toast.error(`AI Processing failed: ${err.message || 'Unknown error'}`);
     } finally {
       setIsProcessingTranscript(false);
     }
