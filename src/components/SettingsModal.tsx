@@ -90,12 +90,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[500px] w-full h-full sm:h-auto sm:max-h-[85vh] overflow-y-auto p-0 sm:p-6 flex flex-col gap-0">
+                <DialogHeader className="p-6 pb-2 sm:p-0">
                     <DialogTitle>{t.settings}</DialogTitle>
                 </DialogHeader>
 
-                <div className="grid gap-6 py-2">
+                <div className="grid gap-6 p-6 sm:p-0 overflow-y-auto flex-1">
                     {/* Appearance Section */}
                     <div className="space-y-3">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.appearance}</h4>

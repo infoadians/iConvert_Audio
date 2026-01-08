@@ -1,5 +1,5 @@
-
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { get, set } from 'idb-keyval';
 import { Header } from './components/Header';
 import { DropZone } from './components/DropZone';
 import { FileList } from './components/FileList';
@@ -59,38 +59,46 @@ const App: React.FC = () => {
   const t = translations[lang];
   const ffmpegManager = FFmpegManager.getInstance();
 
+  // Persistence: Save state when changed
   useEffect(() => {
-    // Only toggle the class, let CSS handle colors
+    if (!isInitializing) {
+      set('iconvert_files', files);
+    }
+  }, [files, isInitializing]);
+
+  useEffect(() => {
+    if (!isInitializing) {
+      set('iconvert_results', processedResults);
+    }
+  }, [processedResults, isInitializing]);
+
+  useEffect(() => {
+    if (!isInitializing) {
+      set('iconvert_is_dark', isDark);
+    }
+    // Update Meta Tag immediately
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (isDark) {
       document.documentElement.classList.add('dark');
-      if (metaThemeColor) metaThemeColor.setAttribute('content', '#0f172a'); // Slate-900 (Dark background)
+      if (metaThemeColor) metaThemeColor.setAttribute('content', '#0f172a');
     } else {
       document.documentElement.classList.remove('dark');
-      if (metaThemeColor) metaThemeColor.setAttribute('content', '#f8fafc'); // Slate-50 (Light background)
+      if (metaThemeColor) metaThemeColor.setAttribute('content', '#f8fafc');
     }
-  }, [isDark]);
+  }, [isDark, isInitializing]);
 
   useEffect(() => {
-    // Apply primary color variable
+    if (!isInitializing) {
+      set('iconvert_primary_hue', primaryHue);
+    }
     document.documentElement.style.setProperty('--primary-h', primaryHue.toString());
-    // Simple HSL conversion for Tailwind custom prop if needed, or use inline styles for generic vars
-    // Ideally we would set these on :root in a way Tailwind can pickup, but for now we might rely on the globals.css variables
-    // mapped to these CSS variables if we set them up there. 
-    // For now, let's assume globals.css handles hsl(var(--primary)) and we just set --primary to the hue-sat-light values.
-
-    // Actually, Shadcn uses HSL values. We can try to set the CSS variable directly.
-    // Assuming Saturation 95% and Lightness 60% for primary.
     document.documentElement.style.setProperty('--primary', `${primaryHue} 95% 60%`);
     document.documentElement.style.setProperty('--ring', `${primaryHue} 95% 60%`);
-    // Adjust for dark mode if needed purely via CSS, but this is a rough dynamic theme.
-  }, [primaryHue]);
+  }, [primaryHue, isInitializing]);
 
   useEffect(() => {
     // Apply global font scale
     document.documentElement.style.setProperty('--global-font-scale', fontScale.toString());
-    // We might need to scale the root font size or use a class.
-    // Shadcn uses rems, so scaling root font-size works.
     document.documentElement.style.fontSize = `${fontScale * 100}%`;
   }, [fontScale]);
 
@@ -112,6 +120,19 @@ const App: React.FC = () => {
 
     const init = async () => {
       try {
+        // Load persisted data
+        const [savedFiles, savedResults, savedIsDark, savedHue] = await Promise.all([
+          get('iconvert_files'),
+          get('iconvert_results'),
+          get('iconvert_is_dark'),
+          get('iconvert_primary_hue')
+        ]);
+
+        if (savedFiles) setFiles(savedFiles);
+        if (savedResults) setProcessedResults(savedResults);
+        if (savedIsDark !== undefined) setIsDark(savedIsDark);
+        if (savedHue !== undefined) setPrimaryHue(savedHue);
+
         await ffmpegManager.load();
         setIsFFmpegLoaded(true);
       } catch (error: any) {
