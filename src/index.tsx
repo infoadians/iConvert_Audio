@@ -4,28 +4,72 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/globals.css';
 
+
+console.log('App Bootstrapping...');
+
+// Global Error Handler
+window.onerror = (msg, url, line, col, error) => {
+  console.error('GLOBAL ERROR:', msg, 'at', url, ':', line, ':', col, error);
+  const root = document.getElementById('root');
+  if (root && root.innerHTML === '') {
+    root.innerHTML = `<div style="padding: 20px; color: red; font-family: sans-serif;">
+      <h2>Bootstrap Error</h2>
+      <p>${msg}</p>
+      <pre style="font-size: 12px; background: #eee; padding: 10px;">${error?.stack || ''}</pre>
+    </div>`;
+  }
+};
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error('ErrorBoundary caught:', error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', color: 'red', fontFamily: 'sans-serif' }}>
+          <h2>Application Error</h2>
+          <p>{this.state.error?.message || 'Something went wrong'}</p>
+          <button onClick={() => window.location.reload()} style={{ padding: '8px 16px' }}>Retry</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Register Service Worker for PWA/Offline functionality
-// Added origin check to prevent registration errors on restricted domains (like development proxies)
-if ('serviceWorker' in navigator && window.location.origin.indexOf('localhost') !== -1 || window.location.protocol === 'https:') {
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // We use a relative path to ensure the origin matches
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('ServiceWorker registered with scope: ', reg.scope))
-      .catch((err) => {
-        // Log locally but don't break the app
-        console.warn('PWA ServiceWorker registration skipped or failed:', err.message);
-      });
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => console.log('ServiceWorker registered:', reg.scope))
+      .catch((err) => console.warn('PWA registration skipped:', err.message));
   });
 }
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
-  throw new Error("Could not find root element to mount to");
+  console.error("FATAL: Root element not found");
+} else {
+  try {
+    const root = ReactDOM.createRoot(rootElement);
+    root.render(
+      <React.StrictMode>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </React.StrictMode>
+    );
+    console.log('React Render Initiated');
+  } catch (err) {
+    console.error('Render Initialization Error:', err);
+  }
 }
 
-const root = ReactDOM.createRoot(rootElement);
-root.render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
-);
