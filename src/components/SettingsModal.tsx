@@ -40,6 +40,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     primaryHue, setPrimaryHue, apiKey, onSaveKey,
     templates, onSaveTemplates, fontScale, onSaveFontScale, t
 }) => {
+    const [localKey, setLocalKey] = useState(apiKey);
+    const [editingTemplate, setEditingTemplate] = useState<ProcessTemplate | null>(null);
+    const [newName, setNewName] = useState('');
+    const [newPrompt, setNewPrompt] = useState('');
+
     useEffect(() => {
         setLocalKey(apiKey);
     }, [apiKey]);
@@ -50,7 +55,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     const isKeyUnchanged = localKey === apiKey;
 
-    // ... template handlers ...
+    const handleAddTemplate = () => {
+        if (!newName.trim() || !newPrompt.trim()) return;
+        const newTemplate: ProcessTemplate = {
+            id: crypto.randomUUID(),
+            name: newName,
+            prompt: newPrompt
+        };
+        onSaveTemplates([...templates, newTemplate]);
+        setNewName('');
+        setNewPrompt('');
+    };
+
+    const handleEditTemplate = (template: ProcessTemplate) => {
+        setEditingTemplate(template);
+        setNewName(template.name);
+        setNewPrompt(template.prompt);
+    };
+
+    const handleUpdateTemplate = () => {
+        if (!editingTemplate || !newName.trim() || !newPrompt.trim()) return;
+        const updatedTemplates = templates.map(t =>
+            t.id === editingTemplate.id ? { ...t, name: newName, prompt: newPrompt } : t
+        );
+        onSaveTemplates(updatedTemplates);
+        setEditingTemplate(null);
+        setNewName('');
+        setNewPrompt('');
+    };
+
+    const handleDeleteTemplate = (id: string) => {
+        onSaveTemplates(templates.filter(t => t.id !== id));
+    };
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
