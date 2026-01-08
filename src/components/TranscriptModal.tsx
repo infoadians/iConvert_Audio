@@ -17,7 +17,7 @@ interface TranscriptModalProps {
     fileName: string;
     content: string;
     templates: ProcessTemplate[];
-    onProcess: (template: ProcessTemplate) => void;
+    onProcess?: (template: ProcessTemplate) => void;
     isProcessing: boolean;
     t: any;
 }
@@ -101,13 +101,20 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                 {/* Content Area */}
                 <div className="flex-1 overflow-hidden relative bg-muted/10">
                     <ScrollArea className="h-full w-full p-8">
-                        <div
-                            ref={pdfContentRef}
-                            className={`markdown-content-viewer p-8 rounded-lg border bg-background text-foreground shadow-sm ${isProcessing ? 'animate-pulse' : ''}`}
-                            style={{ fontSize: `${fontSize}px` }}
-                        >
-                            <ReactMarkdown>{isProcessing ? "Processing with AI..." : content}</ReactMarkdown>
-                        </div>
+                        {isProcessing ? (
+                            <div className="flex flex-col items-center justify-center h-full space-y-4 min-h-[200px]">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                <p className="text-muted-foreground animate-pulse text-sm">Processing with AI...</p>
+                            </div>
+                        ) : (
+                            <div
+                                ref={pdfContentRef}
+                                className="markdown-content-viewer p-8 rounded-lg border bg-background text-foreground shadow-sm"
+                                style={{ fontSize: `${fontSize}px` }}
+                            >
+                                <ReactMarkdown>{content}</ReactMarkdown>
+                            </div>
+                        )}
                     </ScrollArea>
                 </div>
 
@@ -115,10 +122,12 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                 <div className="border-t p-4 flex items-center justify-between bg-background">
                     <div className="flex gap-2 relative">
                         <div className="relative">
-                            <Button variant="outline" onClick={toggleMenu} disabled={isProcessing}>
-                                <Play className="mr-2 h-4 w-4" />
-                                {t.process}
-                            </Button>
+                            {onProcess && (
+                                <Button variant="outline" onClick={toggleMenu} disabled={isProcessing}>
+                                    <Play className="mr-2 h-4 w-4" />
+                                    {t.process}
+                                </Button>
+                            )}
 
                             {isMenuOpen && (
                                 <div className="absolute bottom-full left-0 mb-2 w-80 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
