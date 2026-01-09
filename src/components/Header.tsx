@@ -39,7 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <Info className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
+                <DialogContent className="w-screen h-screen max-w-none rounded-none border-none flex flex-col p-0 gap-0 bg-background">
                   <div className="p-6 pb-2">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold flex items-center gap-2">
