@@ -110,18 +110,20 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[90vw] h-[90vh] max-w-4xl flex flex-col p-0 gap-0">
-                {/* Header Line 1: Controls */}
-                <div className="flex items-center justify-between border-b px-6 py-3 bg-muted/30">
+                {/* Header: Row 1 Name + Close, Row 2 Controls */}
+                <div className="flex flex-col gap-2 border-b px-6 py-3 bg-muted/30">
+                    <div className="flex items-center justify-between pr-8">
+                        <DialogTitle className="truncate font-semibold text-base leading-tight">{fileName}</DialogTitle>
+                    </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => setFontSize(f => Math.max(10, f - 2))} title="Decrease text size">
-                            <ZoomOut className="h-4 w-4" />
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setFontSize(f => Math.max(10, f - 2))} title="Decrease text size">
+                            <ZoomOut className="h-3 w-3" />
                         </Button>
-                        <span className="text-sm font-medium w-12 text-center">{fontSize}px</span>
-                        <Button variant="ghost" size="icon" onClick={() => setFontSize(f => Math.min(48, f + 2))} title="Increase text size">
-                            <ZoomIn className="h-4 w-4" />
+                        <span className="text-xs font-medium w-8 text-center">{fontSize}px</span>
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setFontSize(f => Math.min(48, f + 2))} title="Increase text size">
+                            <ZoomIn className="h-3 w-3" />
                         </Button>
                     </div>
-                    <DialogTitle className="truncate flex-1 text-center px-4 font-semibold text-lg">{fileName}</DialogTitle>
                 </div>
 
                 {/* Content Area */}
@@ -145,18 +147,19 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                 </div>
 
                 {/* Footer / Actions */}
-                <div className="border-t p-4 flex items-center justify-between bg-background">
+                <div className="border-t p-3 flex items-center justify-between bg-background gap-2 overflow-x-auto">
                     <div className="flex gap-2 relative">
                         <div className="relative">
                             {onProcess && (
-                                <Button variant="outline" onClick={toggleMenu} disabled={isProcessing}>
-                                    <Play className="mr-2 h-4 w-4" />
+                                <Button variant="outline" size="sm" className="h-8 px-2" onClick={toggleMenu} disabled={isProcessing}>
+                                    <Play className="mr-1.5 h-3.5 w-3.5" />
                                     {t.process}
                                 </Button>
                             )}
 
                             {isMenuOpen && (
-                                <div className="absolute bottom-full left-0 mb-2 w-80 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                                <div className="absolute bottom-full left-0 mb-2 w-72 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                                    {/* ... Menu content ... */}
                                     <div className="p-3 border-b flex justify-between items-center bg-muted/20 rounded-t-lg">
                                         <h4 className="font-semibold text-sm">
                                             {menuView === 'main' && (t.templates || 'Select Template')}
@@ -171,11 +174,11 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                     <div className="p-2 max-h-[300px] overflow-y-auto">
                                         {menuView === 'main' && (
                                             <div className="space-y-1">
-                                                <Button variant="ghost" className="w-full justify-between font-normal" onClick={() => setMenuView('custom')}>
+                                                <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('custom')}>
                                                     <span>Custom Templates</span>
                                                     <ChevronRight className="h-4 w-4 opacity-50" />
                                                 </Button>
-                                                <Button variant="ghost" className="w-full justify-between font-normal" onClick={() => setMenuView('standard')}>
+                                                <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('standard')}>
                                                     <span>Standard Templates</span>
                                                     <ChevronRight className="h-4 w-4 opacity-50" />
                                                 </Button>
@@ -184,28 +187,25 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
 
                                         {menuView === 'custom' && (
                                             <div className="space-y-1">
-                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1" onClick={() => setMenuView('main')}>
+                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
                                                     &larr; Back
                                                 </Button>
                                                 {templates.map(tmp => (
                                                     <Button
                                                         key={tmp.id}
                                                         variant="ghost"
-                                                        className="w-full justify-start text-sm h-auto py-2"
+                                                        className="w-full justify-start text-sm h-auto py-1.5"
                                                         onClick={() => { onProcess(tmp); setIsMenuOpen(false); }}
                                                     >
                                                         {tmp.name}
                                                     </Button>
                                                 ))}
-                                                {templates.length === 0 && (
-                                                    <p className="text-xs text-center py-4 text-muted-foreground">No custom templates</p>
-                                                )}
                                             </div>
                                         )}
 
                                         {menuView === 'standard' && (
                                             <div className="space-y-1">
-                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1" onClick={() => setMenuView('main')}>
+                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
                                                     &larr; Back
                                                 </Button>
 
@@ -245,19 +245,19 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                             )}
                         </div>
 
-                        <Button variant="outline" onClick={handleCopy}>
-                            {copied ? <span className="text-green-500">Copied</span> : <><Copy className="mr-2 h-4 w-4" /> Copy</>}
+                        <Button variant="outline" size="sm" className="h-8 w-8 px-0" onClick={handleCopy} title="Copy to Clipboard">
+                            {copied ? <span className="text-green-500 font-bold">✓</span> : <Copy className="h-4 w-4" />}
                         </Button>
                     </div>
 
-                    <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => handleDownload('pdf')}>
+                    <div className="flex gap-2 shrink-0">
+                        <Button variant="secondary" size="sm" className="h-8 px-2" onClick={() => handleDownload('pdf')}>
                             PDF
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleDownload('txt')}>
+                        <Button variant="secondary" size="sm" className="h-8 px-2" onClick={() => handleDownload('txt')}>
                             TXT
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={() => handleDownload('md')}>
+                        <Button variant="secondary" size="sm" className="h-8 px-2" onClick={() => handleDownload('md')}>
                             MD
                         </Button>
                     </div>

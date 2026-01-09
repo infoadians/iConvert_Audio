@@ -65,10 +65,10 @@ const App: React.FC = () => {
 
   // Collapsible Sections State
   const [expandedSections, setExpandedSections] = useState({
-    queue: true,
-    transcribed: true,
-    documents: true,
-    processed: true
+    queue: false,
+    transcribed: false,
+    documents: false,
+    processed: false
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -315,7 +315,24 @@ const App: React.FC = () => {
     });
 
     if (audioCandidates.length > 0) {
-      // ... (audio logic remains same)
+      const audioFiles: AudioFile[] = await Promise.all(audioCandidates.map(async file => {
+        const duration = await getAudioDuration(file);
+        const id = Math.random().toString(36).substring(7);
+        // Persist file blob
+        await set(`iconvert_file_data_${id}`, file);
+        return {
+          id,
+          file,
+          name: file.name,
+          size: file.size,
+          duration,
+          status: 'pending',
+          progress: 0,
+          transcriptionStatus: 'idle',
+          timestamp: Date.now()
+        };
+      }));
+      setFiles(prev => [...prev, ...audioFiles]);
     }
 
     if (docCandidates.length > 0) {
@@ -808,7 +825,7 @@ const App: React.FC = () => {
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.3</p>
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.4</p>
       </footer>
     </div>
   );
