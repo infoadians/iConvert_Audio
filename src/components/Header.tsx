@@ -2,6 +2,7 @@
 import React from 'react';
 import { Language } from '../i18n';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Settings, Info } from 'lucide-react';
 import {
   Dialog,
