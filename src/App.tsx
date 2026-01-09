@@ -630,7 +630,7 @@ Reglas estrictas:
               <div className="text-2xl">✨</div>
               <div className="flex-1">
                 <p className="text-sm font-semibold">{t.install}</p>
-                <p className="text-xs text-muted-foreground">{t.installDesc}</p>
+                <p className="text-xs text-muted-foreground font-mono">iConvert Audio, by Bella Labs, V0.3.6</p>
               </div>
               <button onClick={() => setShowIPhoneTip(false)} className="text-muted-foreground hover:text-foreground">×</button>
             </div>
@@ -810,7 +810,7 @@ Reglas estrictas:
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        Processed Results
+                        {t.processedResults}
                         <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
                           {processedResults.length}
                         </span>

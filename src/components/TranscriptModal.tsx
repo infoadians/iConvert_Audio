@@ -166,8 +166,8 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                     <div className="p-4 border-b flex justify-between items-center bg-muted/10">
                                         <h4 className="font-semibold text-sm">
                                             {menuView === 'main' && (t.templates || 'Select Template')}
-                                            {menuView === 'custom' && 'Custom Templates'}
-                                            {menuView === 'standard' && 'Standard Templates'}
+                                            {menuView === 'custom' && t.customTemplates}
+                                            {menuView === 'standard' && t.standardTemplates}
                                         </h4>
                                         <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => setIsMenuOpen(false)}>
                                             <X className="h-4 w-4" />
@@ -179,11 +179,11 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                         {menuView === 'main' && (
                                             <div className="space-y-1 p-2">
                                                 <Button variant="ghost" className="w-full justify-between font-medium h-12 text-base px-4 bg-card border shadow-sm mb-2" onClick={() => setMenuView('custom')}>
-                                                    <span>Custom Templates</span>
+                                                    <span>{t.customTemplates}</span>
                                                     <ChevronRight className="h-5 w-5 opacity-50" />
                                                 </Button>
                                                 <Button variant="ghost" className="w-full justify-between font-medium h-12 text-base px-4 bg-card border shadow-sm" onClick={() => setMenuView('standard')}>
-                                                    <span>Standard Templates</span>
+                                                    <span>{t.standardTemplates}</span>
                                                     <ChevronRight className="h-5 w-5 opacity-50" />
                                                 </Button>
                                             </div>
