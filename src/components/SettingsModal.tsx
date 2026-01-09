@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown } from 'lucide-react';
+import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 
@@ -111,12 +111,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[90dvh] overflow-hidden p-0 rounded-xl flex flex-col gap-0">
-                <DialogHeader className="p-6 pb-2 sm:p-0">
-                    <DialogTitle>{t.settings}</DialogTitle>
+            <DialogContent className="fixed inset-0 z-50 w-screen h-screen max-w-none m-0 rounded-none flex flex-col gap-0 p-0 bg-background">
+                <DialogHeader className="p-4 border-b">
+                    <div className="flex items-center justify-between">
+                        <DialogTitle>{t.settings}</DialogTitle>
+                        <Button variant="ghost" size="icon" onClick={onClose}>
+                            <X className="h-5 w-5" />
+                        </Button>
+                    </div>
                 </DialogHeader>
 
-                <div className="grid gap-6 p-6 sm:p-0 overflow-y-auto flex-1">
+                <div className="grid gap-6 p-4 overflow-y-auto flex-1 max-w-3xl mx-auto w-full">
                     {/* Appearance Section */}
                     <div className="space-y-4">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.appearance}</h4>
@@ -139,15 +144,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                         <div className="flex items-center justify-between">
                             <Label>{t.language}</Label>
-                            <Select value={lang} onValueChange={(val: Language) => setLang(val)}>
-                                <SelectTrigger className="w-[180px]">
-                                    <SelectValue placeholder="Select Language" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="en">English</SelectItem>
-                                    <SelectItem value="es">Español</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Button
+                                variant="outline"
+                                onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
+                                className="w-[180px] justify-between"
+                            >
+                                <span className="flex items-center gap-2">
+                                    <Languages className="h-4 w-4" />
+                                    {lang === 'en' ? 'English' : 'Español'}
+                                </span>
+                                <ChevronRight className="h-4 w-4 opacity-50" />
+                            </Button>
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
@@ -197,23 +204,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                         {/* CUSTOM TEMPLATES */}
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setIsCustomExpanded(!isCustomExpanded)}>
-                                <h4 className="text-xs font-bold leading-none text-black tracking-wide uppercase">CUSTOM TRANSCRIPTION TEMPLATES</h4>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0">
-                                        {isCustomExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                                    </Button>
-                                </div>
-                            </div>
-
-                            {isCustomExpanded && (
+                            <div className="flex items-center gap-3">
+                                <h4 className="text-sm font-bold leading-none text-foreground tracking-wide">{t.customTemplates}</h4>
                                 <Dialog open={isAddTemplateOpen} onOpenChange={(open) => {
                                     if (!open) { setEditingTemplate(null); setNewName(''); setNewPrompt(''); }
                                     setIsAddTemplateOpen(open);
                                 }}>
                                     <DialogTrigger asChild>
-                                        <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(null); }}>
-                                            Add New
+                                        <Button size="sm" className="h-6 text-xs bg-primary text-primary-foreground hover:bg-primary/90">
+                                            {t.addNew}
                                         </Button>
                                     </DialogTrigger>
                                     <DialogContent className="sm:max-w-[425px]">
@@ -247,11 +246,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                         </div>
                                     </DialogContent>
                                 </Dialog>
-                            )}
-                        </div>
+                            </div>
 
-                        {isCustomExpanded && (
-                            <div className="space-y-2 pl-8">
+                            <div className="space-y-2">
                                 {templates.map(tmp => (
                                     <div key={tmp.id} className="group flex items-center justify-between p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
                                         <span className="text-sm font-medium">{tmp.name}</span>
@@ -267,22 +264,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 ))}
                                 {templates.length === 0 && <p className="text-xs text-muted-foreground py-2 italic">No custom templates added.</p>}
                             </div>
-                        )}
-                    </div>
-
-                    {/* STANDARD TEMPLATES */}
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setIsStandardExpanded(!isStandardExpanded)}>
-                            <h4 className="text-xs font-bold leading-none text-black tracking-wide uppercase">STANDARD TRANSCRIPTION TEMPLATES</h4>
-                            <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0">
-                                    {isStandardExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                                </Button>
-                            </div>
                         </div>
 
-                        {isStandardExpanded && (
-                            <div className="space-y-2 pl-8">
+                        {/* STANDARD TEMPLATES */}
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-bold leading-none text-foreground tracking-wide">{t.standardTemplates}</h4>
+                            </div>
+
+                            <div className="space-y-2">
                                 {categories.map(category => (
                                     <Card key={category} className="overflow-hidden border-none shadow-none bg-muted/20">
                                         <div
@@ -308,10 +298,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                     </Card>
                                 ))}
                             </div>
-                        )}
-                    </div>
+                        </div>
 
-                </div>
+                    </div>
             </DialogContent>
         </Dialog>
     );

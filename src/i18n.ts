@@ -66,6 +66,14 @@ export const translations = {
     convertToMp3: 'to MP3',
     transcribeToText: 'Transcribe',
     processing: 'Processing...',
+    transcribedAudios: 'Transcribed Audios',
+    documents: 'Documents',
+    customTemplates: 'Custom Process Templates',
+    standardTemplates: 'Standard Process Templates',
+    addNew: 'Add New',
+    install: 'Install iConvert',
+    installDesc: 'Tap the share icon and select "Add to Home Screen".',
+    uiScale: 'UI Scale',
   },
   es: {
     title: 'iConvert Audio',
@@ -131,5 +139,13 @@ export const translations = {
     convertToMp3: 'a MP3',
     transcribeToText: 'Transcribir',
     processing: 'Procesando...',
+    transcribedAudios: 'Audios Transcritos',
+    documents: 'Documentos',
+    customTemplates: 'Plantillas de Proceso Personalizadas',
+    standardTemplates: 'Plantillas de Proceso Estándar',
+    addNew: 'Añadir Nueva',
+    install: 'Instalar iConvert',
+    installDesc: 'Toca el icono de compartir y selecciona "Añadir a Pantalla de Inicio".',
+    uiScale: 'Escala UI',
   }
 };

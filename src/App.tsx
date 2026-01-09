@@ -39,7 +39,9 @@ const App: React.FC = () => {
     bitrate: '128k',
     sampleRate: '44100',
   };
-  const [lang, setLang] = useState<Language>('en');
+  const [lang, setLang] = useState<Language>(() => {
+    return (localStorage.getItem('iconvert_lang') as Language) || 'en';
+  });
   const [isDark, setIsDark] = useState(false);
 
   // Theme Color
@@ -161,6 +163,10 @@ const App: React.FC = () => {
     const storedFontScale = localStorage.getItem('iconvert_font_scale');
     if (storedFontScale) setFontScale(parseFloat(storedFontScale));
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('iconvert_lang', lang);
+  }, [lang]);
 
   // Initialization Logic
   useEffect(() => {
@@ -481,7 +487,15 @@ const App: React.FC = () => {
             role: 'user',
             parts: [
               { inlineData: { mimeType: targetFile.file.type || 'audio/mp3', data: base64Data } },
-              { text: "Transcribir el audio adjunto de forma literal, sin agregar ni eliminar palabras, solamente agregar puntuación y agrupar en parrafos cortos, preferiblemente, de 4 o menos oraciones." }
+              {
+                text: `Actúa como un Transcriptor Profesional Forense. Tu objetivo es crear una transcripción literal perfecta del audio adjunto.
+
+Reglas estrictas:
+1.  **Diarización:** Identifica cambios de interlocutor con etiquetas claras (e.g., [Hablante 1], [Hablante 2]). Usa nombres propios SOLO si se identifican inequívocamente en el audio.
+2.  **Verbatim:** Transcribe palabra por palabra exactamente lo que se dice. NO parafrasees, no resumas, no omitas nada.
+3.  **Formato:** Agrupa en párrafos lógicos y cortos (máx. 4 oraciones) para legibilidad, pero sin alterar el orden de las palabras.
+4.  **Puntuación:** Usa puntuación estándar para reflejar el ritmo y las pausas naturales del habla.
+5.  **Multilenguaje:** Si se detectan varios idiomas, transcribe cada uno en su idioma original.` }
             ]
           }
         ]
@@ -614,8 +628,8 @@ const App: React.FC = () => {
             <div className="flex items-center gap-3">
               <div className="text-2xl">✨</div>
               <div className="flex-1">
-                <p className="text-sm font-semibold">Install iConvert</p>
-                <p className="text-xs text-muted-foreground">Tap the share icon and select "Add to Home Screen".</p>
+                <p className="text-sm font-semibold">{t.install}</p>
+                <p className="text-xs text-muted-foreground">{t.installDesc}</p>
               </div>
               <button onClick={() => setShowIPhoneTip(false)} className="text-muted-foreground hover:text-foreground">×</button>
             </div>
@@ -689,7 +703,7 @@ const App: React.FC = () => {
               <AlertDescription>
                 {t.engineDesc}
                 <div className="mt-4">
-                  <Button onClick={() => window.location.reload()}>
+                  <Button onClick={() => window.location.reload()} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <RefreshCw className="mr-2 h-4 w-4" />
                     {t.retry}
                   </Button>
@@ -740,7 +754,7 @@ const App: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        Transcribed Audios
+                        {t.transcribedAudios}
                         <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
                           {files.filter(f => f.transcriptionStatus === 'done').length}
                         </span>
@@ -768,7 +782,7 @@ const App: React.FC = () => {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        Documents
+                        {t.documents}
                         <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
                           {documents.length}
                         </span>
@@ -825,7 +839,7 @@ const App: React.FC = () => {
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.4</p>
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.5</p>
       </footer>
     </div>
   );

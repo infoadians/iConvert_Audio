@@ -71,7 +71,7 @@ export const FileList: React.FC<FileListProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="secondary"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                     size="sm"
                     onClick={() => onViewProcessed && onViewProcessed(item.id)}
                   >
@@ -111,7 +111,7 @@ export const FileList: React.FC<FileListProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
-                    variant="secondary"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
                     size="sm"
                     onClick={() => onViewTranscript && onViewTranscript(item.id)}
                   >
@@ -184,13 +184,13 @@ export const FileList: React.FC<FileListProps> = ({
                 {type === 'queue' && (
                   <>
                     {item.status === 'pending' && onConvert && (
-                      <Button variant="secondary" size="sm" onClick={() => onConvert(item.id)}>
+                      <Button className="bg-primary text-primary-foreground hover:bg-primary/90" size="sm" onClick={() => onConvert(item.id)}>
                         {t.convert || "Convert"}
                       </Button>
                     )}
                     {item.status === 'completed' && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && item.transcriptionStatus !== 'processing' && (
                       <Button
-                        variant="secondary"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                         size="sm"
                         onClick={() => onTranscribe(item.id)}
                       >
@@ -211,7 +211,7 @@ export const FileList: React.FC<FileListProps> = ({
                 {type === 'transcribed' && (
                   <>
                     {onViewTranscript && (
-                      <Button variant="secondary" size="sm" onClick={() => onViewTranscript(item.id)}>
+                      <Button className="bg-primary text-primary-foreground hover:bg-primary/90" size="sm" onClick={() => onViewTranscript(item.id)}>
                         <Eye className="mr-2 h-3.5 w-3.5" />
                         {t.view || 'View'}
                       </Button>

@@ -147,123 +147,119 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                 </div>
 
                 {/* Footer / Actions */}
-                <div className="border-t p-3 flex items-center justify-between bg-background gap-2 overflow-x-auto">
-                    <div className="flex gap-2 relative">
-                        <div className="relative">
-                            {onProcess && (
-                                <Button variant="outline" size="sm" className="h-8 px-2" onClick={toggleMenu} disabled={isProcessing}>
-                                    <Play className="mr-1.5 h-3.5 w-3.5" />
-                                    {t.process}
-                                </Button>
-                            )}
+                <div className="border-t p-4 bg-background overflow-x-auto">
+                    <div className="flex items-center justify-center gap-3">
+                        {onProcess && (
+                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={toggleMenu} disabled={isProcessing}>
+                                <Play className="mr-2 h-4 w-4" />
+                                {t.process}
+                            </Button>
+                        )}
 
-                            {isMenuOpen && (
-                                <div className="absolute bottom-full left-0 mb-2 w-72 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
-                                    {/* ... Menu content ... */}
-                                    <div className="p-3 border-b flex justify-between items-center bg-muted/20 rounded-t-lg">
-                                        <h4 className="font-semibold text-sm">
-                                            {menuView === 'main' && (t.templates || 'Select Template')}
-                                            {menuView === 'custom' && 'Custom Templates'}
-                                            {menuView === 'standard' && 'Standard Templates'}
-                                        </h4>
-                                        <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setIsMenuOpen(false)}>
-                                            <X className="h-3 w-3" />
-                                        </Button>
-                                    </div>
-
-                                    <div className="p-2 max-h-[300px] overflow-y-auto">
-                                        {menuView === 'main' && (
-                                            <div className="space-y-1">
-                                                <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('custom')}>
-                                                    <span>Custom Templates</span>
-                                                    <ChevronRight className="h-4 w-4 opacity-50" />
-                                                </Button>
-                                                <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('standard')}>
-                                                    <span>Standard Templates</span>
-                                                    <ChevronRight className="h-4 w-4 opacity-50" />
-                                                </Button>
-                                            </div>
-                                        )}
-
-                                        {menuView === 'custom' && (
-                                            <div className="space-y-1">
-                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
-                                                    &larr; Back
-                                                </Button>
-                                                {templates.map(tmp => (
-                                                    <Button
-                                                        key={tmp.id}
-                                                        variant="ghost"
-                                                        className="w-full justify-start text-sm h-auto py-1.5"
-                                                        onClick={() => { onProcess(tmp); setIsMenuOpen(false); }}
-                                                    >
-                                                        {tmp.name}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        )}
-
-                                        {menuView === 'standard' && (
-                                            <div className="space-y-1">
-                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
-                                                    &larr; Back
-                                                </Button>
-
-                                                {categories.map(category => (
-                                                    <div key={category} className="border-b last:border-0 border-border/50">
-                                                        <div
-                                                            className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50 rounded-sm"
-                                                            onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
-                                                        >
-                                                            <span className="text-sm font-medium">{category}</span>
-                                                            {selectedCategory === category ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                                        </div>
-
-                                                        {selectedCategory === category && (
-                                                            <div className="pl-2 pr-1 py-1 space-y-1 bg-muted/10">
-                                                                {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
-                                                                    <Button
-                                                                        key={t.id}
-                                                                        variant="ghost"
-                                                                        className="w-full justify-start text-xs h-auto py-2 whitespace-normal text-left"
-                                                                        onClick={() => { onProcess(t); setIsMenuOpen(false); }}
-                                                                    >
-                                                                        <div className="flex flex-col gap-0.5">
-                                                                            <span className="font-medium">{t.name}</span>
-                                                                            <span className="text-[10px] text-muted-foreground opacity-80">{t.objective}</span>
-                                                                        </div>
-                                                                    </Button>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
+                        {isMenuOpen && (
+                            <div className="absolute bottom-full left-0 mb-2 w-72 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                                {/* ... Menu content ... */}
+                                <div className="p-3 border-b flex justify-between items-center bg-muted/20 rounded-t-lg">
+                                    <h4 className="font-semibold text-sm">
+                                        {menuView === 'main' && (t.templates || 'Select Template')}
+                                        {menuView === 'custom' && 'Custom Templates'}
+                                        {menuView === 'standard' && 'Standard Templates'}
+                                    </h4>
+                                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setIsMenuOpen(false)}>
+                                        <X className="h-3 w-3" />
+                                    </Button>
                                 </div>
-                            )}
-                        </div>
 
-                        <Button variant="outline" size="sm" className="h-8 w-8 px-0" onClick={handleCopy} title="Copy to Clipboard">
-                            {copied ? <span className="text-green-500 font-bold">✓</span> : <Copy className="h-4 w-4" />}
-                        </Button>
+                                <div className="p-2 max-h-[300px] overflow-y-auto">
+                                    {menuView === 'main' && (
+                                        <div className="space-y-1">
+                                            <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('custom')}>
+                                                <span>Custom Templates</span>
+                                                <ChevronRight className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                            <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('standard')}>
+                                                <span>Standard Templates</span>
+                                                <ChevronRight className="h-4 w-4 opacity-50" />
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {menuView === 'custom' && (
+                                        <div className="space-y-1">
+                                            <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
+                                                &larr; Back
+                                            </Button>
+                                            {templates.map(tmp => (
+                                                <Button
+                                                    key={tmp.id}
+                                                    variant="ghost"
+                                                    className="w-full justify-start text-sm h-auto py-1.5"
+                                                    onClick={() => { onProcess(tmp); setIsMenuOpen(false); }}
+                                                >
+                                                    {tmp.name}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {menuView === 'standard' && (
+                                        <div className="space-y-1">
+                                            <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
+                                                &larr; Back
+                                            </Button>
+
+                                            {categories.map(category => (
+                                                <div key={category} className="border-b last:border-0 border-border/50">
+                                                    <div
+                                                        className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50 rounded-sm"
+                                                        onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                                                    >
+                                                        <span className="text-sm font-medium">{category}</span>
+                                                        {selectedCategory === category ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                                    </div>
+
+                                                    {selectedCategory === category && (
+                                                        <div className="pl-2 pr-1 py-1 space-y-1 bg-muted/10">
+                                                            {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
+                                                                <Button
+                                                                    key={t.id}
+                                                                    variant="ghost"
+                                                                    className="w-full justify-start text-xs h-auto py-2 whitespace-normal text-left"
+                                                                    onClick={() => { onProcess(t); setIsMenuOpen(false); }}
+                                                                >
+                                                                    <div className="flex flex-col gap-0.5">
+                                                                        <span className="font-medium">{t.name}</span>
+                                                                        <span className="text-[10px] text-muted-foreground opacity-80">{t.objective}</span>
+                                                                    </div>
+                                                                </Button>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex gap-2 shrink-0">
-                        <Button variant="secondary" size="sm" className="h-8 px-2" onClick={() => handleDownload('pdf')}>
-                            PDF
-                        </Button>
-                        <Button variant="secondary" size="sm" className="h-8 px-2" onClick={() => handleDownload('txt')}>
-                            TXT
-                        </Button>
-                        <Button variant="secondary" size="sm" className="h-8 px-2" onClick={() => handleDownload('md')}>
-                            MD
-                        </Button>
-                    </div>
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 p-0" onClick={handleCopy} title="Copy to Clipboard">
+                        {copied ? <span className="text-white font-bold">✓</span> : <Copy className="h-4 w-4" />}
+                    </Button>
+
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={() => handleDownload('pdf')}>
+                        PDF
+                    </Button>
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={() => handleDownload('txt')}>
+                        TXT
+                    </Button>
+                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={() => handleDownload('md')}>
+                        MD
+                    </Button>
                 </div>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     );
 };
 
