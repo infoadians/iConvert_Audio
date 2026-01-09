@@ -197,120 +197,120 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                         {/* CUSTOM TEMPLATES */}
                         <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => setIsCustomExpanded(!isCustomExpanded)}>
+                            <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setIsCustomExpanded(!isCustomExpanded)}>
+                                <h4 className="text-xs font-bold leading-none text-black tracking-wide uppercase">CUSTOM TRANSCRIPTION TEMPLATES</h4>
+                                <div className="flex items-center gap-2">
                                     <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0">
                                         {isCustomExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                                     </Button>
-                                    <h4 className="text-lg font-bold leading-none text-primary tracking-wide">CUSTOM TRANSCRIPTION TEMPLATES</h4>
                                 </div>
-
-                                {isCustomExpanded && (
-                                    <Dialog open={isAddTemplateOpen} onOpenChange={(open) => {
-                                        if (!open) { setEditingTemplate(null); setNewName(''); setNewPrompt(''); }
-                                        setIsAddTemplateOpen(open);
-                                    }}>
-                                        <DialogTrigger asChild>
-                                            <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(null); }}>
-                                                Add New
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="sm:max-w-[425px]">
-                                            <DialogHeader>
-                                                <DialogTitle>{editingTemplate ? t.editTemplate : t.addTemplate}</DialogTitle>
-                                            </DialogHeader>
-                                            <div className="grid gap-4 py-4">
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="name">{t.templateName}</Label>
-                                                    <Input
-                                                        id="name"
-                                                        value={newName}
-                                                        onChange={(e) => setNewName(e.target.value)}
-                                                        placeholder="My Custom Template"
-                                                    />
-                                                </div>
-                                                <div className="grid gap-2">
-                                                    <Label htmlFor="prompt">{t.templatePrompt}</Label>
-                                                    <textarea
-                                                        id="prompt"
-                                                        value={newPrompt}
-                                                        onChange={(e) => setNewPrompt(e.target.value)}
-                                                        placeholder="Instructions for the AI..."
-                                                        className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                                    />
-                                                </div>
-                                                <Button onClick={editingTemplate ? handleUpdateTemplate : handleAddTemplate}>
-                                                    <Save className="mr-2 h-4 w-4" />
-                                                    {editingTemplate ? t.save : t.addTemplate}
-                                                </Button>
-                                            </div>
-                                        </DialogContent>
-                                    </Dialog>
-                                )}
                             </div>
 
                             {isCustomExpanded && (
-                                <div className="space-y-2 pl-8">
-                                    {templates.map(tmp => (
-                                        <div key={tmp.id} className="group flex items-center justify-between p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
-                                            <span className="text-sm font-medium">{tmp.name}</span>
-                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTemplate(tmp)}>
-                                                    <Edit2 className="h-3.5 w-3.5" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDeleteTemplate(tmp.id)}>
-                                                    <Trash2 className="h-3.5 w-3.5" />
-                                                </Button>
+                                <Dialog open={isAddTemplateOpen} onOpenChange={(open) => {
+                                    if (!open) { setEditingTemplate(null); setNewName(''); setNewPrompt(''); }
+                                    setIsAddTemplateOpen(open);
+                                }}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" size="sm" onClick={() => { setEditingTemplate(null); }}>
+                                            Add New
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="sm:max-w-[425px]">
+                                        <DialogHeader>
+                                            <DialogTitle>{editingTemplate ? t.editTemplate : t.addTemplate}</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="name">{t.templateName}</Label>
+                                                <Input
+                                                    id="name"
+                                                    value={newName}
+                                                    onChange={(e) => setNewName(e.target.value)}
+                                                    placeholder="My Custom Template"
+                                                />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="prompt">{t.templatePrompt}</Label>
+                                                <textarea
+                                                    id="prompt"
+                                                    value={newPrompt}
+                                                    onChange={(e) => setNewPrompt(e.target.value)}
+                                                    placeholder="Instructions for the AI..."
+                                                    className="flex min-h-[120px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                                />
+                                            </div>
+                                            <Button onClick={editingTemplate ? handleUpdateTemplate : handleAddTemplate}>
+                                                <Save className="mr-2 h-4 w-4" />
+                                                {editingTemplate ? t.save : t.addTemplate}
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
+
+                        {isCustomExpanded && (
+                            <div className="space-y-2 pl-8">
+                                {templates.map(tmp => (
+                                    <div key={tmp.id} className="group flex items-center justify-between p-3 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
+                                        <span className="text-sm font-medium">{tmp.name}</span>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTemplate(tmp)}>
+                                                <Edit2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDeleteTemplate(tmp.id)}>
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                                {templates.length === 0 && <p className="text-xs text-muted-foreground py-2 italic">No custom templates added.</p>}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* STANDARD TEMPLATES */}
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setIsStandardExpanded(!isStandardExpanded)}>
+                            <h4 className="text-xs font-bold leading-none text-black tracking-wide uppercase">STANDARD TRANSCRIPTION TEMPLATES</h4>
+                            <div className="flex items-center gap-2">
+                                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0">
+                                    {isStandardExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {isStandardExpanded && (
+                            <div className="space-y-2 pl-8">
+                                {categories.map(category => (
+                                    <Card key={category} className="overflow-hidden border-none shadow-none bg-muted/20">
+                                        <div
+                                            className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/40 transition-colors"
+                                            onClick={() => toggleCategory(category)}
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {expandedCategories.includes(category) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                                <span className="text-sm font-medium">{category}</span>
                                             </div>
                                         </div>
-                                    ))}
-                                    {templates.length === 0 && <p className="text-xs text-muted-foreground py-2 italic">No custom templates added.</p>}
-                                </div>
-                            )}
-                        </div>
 
-                        {/* STANDARD TEMPLATES */}
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between cursor-pointer select-none" onClick={() => setIsStandardExpanded(!isStandardExpanded)}>
-                                <div className="flex items-center gap-2">
-                                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full shrink-0">
-                                        {isStandardExpanded ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                                    </Button>
-                                    <h4 className="text-lg font-bold leading-none text-primary tracking-wide">STANDARD TRANSCRIPTION TEMPLATES</h4>
-                                </div>
-                            </div>
-
-                            {isStandardExpanded && (
-                                <div className="space-y-2 pl-8">
-                                    {categories.map(category => (
-                                        <Card key={category} className="overflow-hidden border-none shadow-none bg-muted/20">
-                                            <div
-                                                className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/40 transition-colors"
-                                                onClick={() => toggleCategory(category)}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {expandedCategories.includes(category) ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                                    <span className="text-sm font-medium">{category}</span>
-                                                </div>
+                                        {expandedCategories.includes(category) && (
+                                            <div className="px-4 pb-3 space-y-2 animate-in slide-in-from-top-1 duration-200">
+                                                {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
+                                                    <div key={t.id} className="text-sm p-2 rounded-md bg-background border">
+                                                        <div className="font-medium text-primary">{t.name}</div>
+                                                        <div className="text-xs text-muted-foreground mt-1">({t.objective})</div>
+                                                    </div>
+                                                ))}
                                             </div>
-
-                                            {expandedCategories.includes(category) && (
-                                                <div className="px-4 pb-3 space-y-2 animate-in slide-in-from-top-1 duration-200">
-                                                    {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
-                                                        <div key={t.id} className="text-sm p-2 rounded-md bg-background border">
-                                                            <div className="font-medium text-primary">{t.name}</div>
-                                                            <div className="text-xs text-muted-foreground mt-1">({t.objective})</div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </Card>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
+                                        )}
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
                     </div>
+
                 </div>
             </DialogContent>
         </Dialog>

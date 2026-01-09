@@ -72,7 +72,21 @@ const App: React.FC = () => {
   });
 
   const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+    setExpandedSections(prev => {
+      const isCurrentlyOpen = prev[section];
+      if (isCurrentlyOpen) {
+        // If clicking an open section, just close it (optional: can leave others closed)
+        return { ...prev, [section]: false };
+      } else {
+        // If clicking a closed section, open it and close ALL others
+        return {
+          queue: section === 'queue',
+          transcribed: section === 'transcribed',
+          documents: section === 'documents',
+          processed: section === 'processed'
+        };
+      }
+    });
   };
 
   const t = translations[lang];
@@ -794,7 +808,7 @@ const App: React.FC = () => {
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.2</p>
+        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.3</p>
       </footer>
     </div>
   );

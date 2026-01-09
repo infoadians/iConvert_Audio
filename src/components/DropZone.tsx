@@ -47,7 +47,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
           <Plus className="h-6 w-6" />
         </div>
         <span className="text-xl font-medium text-primary">
-          + Add Audio and Document files
+          Add Audio or Document files
         </span>
       </div>
     );
