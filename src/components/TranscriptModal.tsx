@@ -100,7 +100,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-hidden relative bg-muted/10">
-                    <ScrollArea className="h-full w-full p-8">
+                    <ScrollArea className="h-full w-full">
                         {isProcessing ? (
                             <div className="flex flex-col items-center justify-center h-full space-y-4 min-h-[200px]">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>

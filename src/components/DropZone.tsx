@@ -32,22 +32,22 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
       <div
         onDragEnter={handleDrag} onDragOver={handleDrag} onDragLeave={handleDrag} onDrop={handleDrop}
         className={cn(
-          "relative border-2 border-dashed rounded-lg p-4 transition-colors cursor-pointer flex items-center justify-center gap-3",
-          isDragging ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+          "relative border-2 border-dashed rounded-lg p-6 transition-colors cursor-pointer flex items-center justify-center gap-4 bg-primary/10",
+          isDragging ? "border-primary bg-primary/20" : "border-primary/20 hover:border-primary/50 hover:bg-primary/20"
         )}
         onClick={() => document.getElementById('file-input-compact')?.click()}
       >
         <input
           id="file-input-compact"
-          type="file" multiple accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4"
+          type="file" multiple accept="audio/*,.m4a,.wav,.opus,.ogg,.mov,.mp4,.txt,.md,.docx,.pdf"
           onChange={(e) => e.target.files && onFilesAdded(Array.from(e.target.files))}
           className="hidden"
         />
-        <div className="h-8 w-8 flex items-center justify-center rounded-full bg-primary/10 text-primary">
-          <Plus className="h-5 w-5" />
+        <div className="h-10 w-10 flex items-center justify-center rounded-full bg-primary/20 text-primary">
+          <Plus className="h-6 w-6" />
         </div>
-        <span className="text-sm font-medium text-muted-foreground">
-          {isDragging ? t.dropActive : t.dropTitle}
+        <span className="text-xl font-medium text-primary">
+          + Add Audio and Document files
         </span>
       </div>
     );

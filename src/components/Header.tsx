@@ -32,9 +32,9 @@ export const Header: React.FC<HeaderProps> = ({
             size="icon"
             onClick={onOpenSettings}
             title={t.settings}
-            className="h-12 w-12"
+            className="h-16 w-16"
           >
-            <Settings className="h-8 w-8" />
+            <Settings className="h-10 w-10" />
           </Button>
         </div>
       </div>
