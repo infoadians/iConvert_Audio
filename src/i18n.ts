@@ -78,6 +78,17 @@ export const translations = {
     view: 'View',
     convert: 'Convert',
     processingAI: 'Processing with AI...',
+    infoModal: {
+      title: 'About Transcribo',
+      description: 'Transcribe audio to text with AI. Use smart templates to analyze the content of your transcriptions and of your documents securely.',
+      sections: {
+        queue: 'Conversion Queue: Manage your audio files waiting to be transcribed to text.',
+        transcribed: 'Transcribed Audios: Access the full text generated from your audios; view it, copy it, or save it as PDF (and other formats).',
+        documents: 'Documents: View the documents (pdf, docx, md, txt) you have uploaded and process them with the templates you choose.',
+        results: 'Processed Results: Find here the summaries, analyses, and data extracted when applying the templates to your transcriptions and documents.'
+      },
+      templates: 'Templates: You can view over 20 standard templates for professional results, and add new custom templates from the Settings page.'
+    },
   },
   es: {
     title: 'iConvert Audio',
@@ -155,5 +166,16 @@ export const translations = {
     view: 'Ver',
     convert: 'Convertir',
     processingAI: 'Procesando con IA...',
+    infoModal: {
+      title: 'Acerca de Transcribo',
+      description: 'Transcribe audio a texto con IA. Utiliza plantillas inteligentes para analizar el contenido de tus transcripciones y de tus documentos de forma segura.',
+      sections: {
+        queue: 'Cola de Conversión: Gestiona tus archivos de audio pendientes de ser transcritos a texto.',
+        transcribed: 'Audios Transcritos: Accede al texto completo generado a partir de tus audios; para verlo, copiarlo o guardarlo como PDF (y otros formatos).',
+        documents: 'Documentos: Te permite ver los documentos (pdf, docx, md, txt) que has subido y procesarlos con las plantillas que escojas.',
+        results: 'Resultados Procesados: Encuentra aquí los resúmenes, análisis y datos extraídos al aplicar las plantillas a tus transcripciones y documentos.'
+      },
+      templates: 'Plantillas: Puedes ver más de 20 plantillas estándar para resultados profesionales, y agregar nuevas plantillas personalizadas desde la página de Ajustes.'
+    }
   }
 };
