@@ -76,6 +76,7 @@ export const translations = {
     uiScale: 'UI Scale',
     view: 'View',
     convert: 'Convert',
+    processingAI: 'Processing with AI...',
   },
   es: {
     title: 'iConvert Audio',
@@ -151,5 +152,6 @@ export const translations = {
     uiScale: 'Escala UI',
     view: 'Ver',
     convert: 'Convertir',
+    processingAI: 'Procesando con IA...',
   }
 };

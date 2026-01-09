@@ -132,7 +132,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                         {isProcessing ? (
                             <div className="flex flex-col items-center justify-center h-full space-y-4 min-h-[200px]">
                                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                <p className="text-muted-foreground animate-pulse text-sm">Processing with AI...</p>
+                                <p className="text-muted-foreground animate-pulse text-sm">{t.processingAI}</p>
                             </div>
                         ) : (
                             <div

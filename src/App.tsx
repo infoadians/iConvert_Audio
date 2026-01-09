@@ -491,7 +491,7 @@ const App: React.FC = () => {
                 text: `Actúa como un Transcriptor Profesional Forense. Tu objetivo es crear una transcripción literal perfecta del audio adjunto.
 
 Reglas estrictas:
-1.  **Diarización:** Identifica cambios de interlocutor con etiquetas claras (e.g., [Hablante 1], [Hablante 2]). Usa nombres propios SOLO si se identifican inequívocamente en el audio.
+1.  **Diarización:** Identifica el inicio de cada intervención con etiquetas (e.g., [Hablante 1]). IMPORTANTE: Insertar la etiqueta SOLAMENTE cuando cambie el interlocutor. NO repitas la etiqueta en párrafos consecutivos del mismo hablante.
 2.  **Verbatim:** Transcribe palabra por palabra exactamente lo que se dice. NO parafrasees, no resumas, no omitas nada.
 3.  **Formato:** Agrupa en párrafos lógicos y cortos (máx. 4 oraciones) para legibilidad, pero sin alterar el orden de las palabras.
 4.  **Puntuación:** Usa puntuación estándar para reflejar el ritmo y las pausas naturales del habla.

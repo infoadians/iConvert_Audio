@@ -121,7 +121,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
                 </DialogHeader>
 
-                <div className="grid gap-3 p-4 overflow-y-auto flex-1 max-w-3xl mx-auto w-full">
+                <div className="grid gap-3 p-4 overflow-y-auto h-full content-start max-w-3xl mx-auto w-full">
                     {/* Appearance Section */}
                     <div className="space-y-2">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.appearance}</h4>
