@@ -75,7 +75,7 @@ export const FileList: React.FC<FileListProps> = ({
                     size="sm"
                     onClick={() => onViewProcessed && onViewProcessed(item.id)}
                   >
-                    {t.view || 'View'}
+                    {t.view}
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => onRemove(item.id, 'processed')} className="text-destructive hover:text-destructive/80">
                     <Trash2 className="h-4 w-4" />
@@ -116,7 +116,7 @@ export const FileList: React.FC<FileListProps> = ({
                     onClick={() => onViewTranscript && onViewTranscript(item.id)}
                   >
                     <Eye className="mr-2 h-3.5 w-3.5" />
-                    {t.view || 'View'}
+                    {t.view}
                   </Button>
                   <Button variant="ghost" size="icon" onClick={() => onRemove(item.id, 'document')} className="text-destructive hover:text-destructive/80">
                     <Trash2 className="h-4 w-4" />
