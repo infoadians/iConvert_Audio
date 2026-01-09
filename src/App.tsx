@@ -629,8 +629,8 @@ Reglas estrictas:
             <div className="flex items-center gap-3">
               <div className="text-2xl">✨</div>
               <div className="flex-1">
-                <p className="text-xs text-muted-foreground font-mono">{t.footerText}</p>
-                <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono">iConvert Audio, by Bella Labs, V0.3.6</p>
+                <p className="text-sm font-semibold">{t.install}</p>
+                <p className="text-xs text-muted-foreground">{t.installDesc}</p>
               </div>
               <button onClick={() => setShowIPhoneTip(false)} className="text-muted-foreground hover:text-foreground">×</button>
             </div>
@@ -840,7 +840,7 @@ Reglas estrictas:
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p>iConvert Audio & Transcribe, by Bella Labs, V0.3.5</p>
+        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V0.3.6</p>
       </footer>
     </div>
   );
