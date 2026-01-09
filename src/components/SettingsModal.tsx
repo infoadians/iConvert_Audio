@@ -121,13 +121,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </div>
                 </DialogHeader>
 
-                <div className="grid gap-6 p-4 overflow-y-auto flex-1 max-w-3xl mx-auto w-full">
+                <div className="grid gap-3 p-4 overflow-y-auto flex-1 max-w-3xl mx-auto w-full">
                     {/* Appearance Section */}
-                    <div className="space-y-4">
+                    <div className="space-y-2">
                         <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.appearance}</h4>
 
                         {/* Dark Mode */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between h-8">
                             <Label htmlFor="dark-mode">{t.darkMode}</Label>
                             <Switch
                                 id="dark-mode"
@@ -137,27 +137,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
 
                         {/* Theme Color */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between h-8">
                             <Label>{t.themeColor}</Label>
                             <ColorPicker primaryHue={primaryHue} setPrimaryHue={setPrimaryHue} t={t} />
                         </div>
 
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between h-8">
                             <Label>{t.language}</Label>
                             <Button
                                 variant="outline"
                                 onClick={() => setLang(lang === 'en' ? 'es' : 'en')}
-                                className="w-[180px] justify-between"
+                                className="w-[140px] h-8 justify-between text-xs"
                             >
                                 <span className="flex items-center gap-2">
-                                    <Languages className="h-4 w-4" />
+                                    <Languages className="h-3 w-3" />
                                     {lang === 'en' ? 'English' : 'Español'}
                                 </span>
-                                <ChevronRight className="h-4 w-4 opacity-50" />
+                                <ChevronRight className="h-3 w-3 opacity-50" />
                             </Button>
                         </div>
-                        <div className="space-y-3">
-                            <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <div className="flex items-center justify-between h-6">
                                 <Label>UI Scale</Label>
                                 <span className="text-sm text-muted-foreground">{Math.round(fontScale * 100)}%</span>
                             </div>
@@ -167,42 +167,80 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 step={0.1}
                                 value={[fontScale]}
                                 onValueChange={(val) => onSaveFontScale(val[0])}
+                                className="py-1"
                             />
                         </div>
                     </div>
 
-                    <div className="border-t my-1" />
+                    <div className="border-t my-0.5" />
 
                     {/* AI Section */}
-                    <div className="space-y-3">
-                        <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.apiKeyTitle}</h4>
+                    <div className="space-y-1">
+                        <h4 className="text-sm font-medium leading-none text-muted-foreground mb-2">{t.apiKeyTitle}</h4>
                         <div className="flex gap-2 items-end">
-                            <div className="grid w-full gap-1.5">
+                            <div className="grid w-full gap-1">
                                 <Input
                                     type="password"
                                     value={localKey}
                                     onChange={(e) => setLocalKey(e.target.value)}
                                     placeholder={t.apiKeyPlaceholder}
-                                    className="h-9"
+                                    className="h-8 text-xs"
                                 />
                             </div>
                             <Button
                                 onClick={handleSaveKey}
                                 size="sm"
                                 disabled={isKeyUnchanged}
-                                className={cn("h-9", isKeyUnchanged ? "opacity-50" : "")}
+                                className={cn("h-8 text-xs", isKeyUnchanged ? "opacity-50" : "")}
                             >
                                 {isKeyUnchanged ? 'Saved' : t.saveKey}
                             </Button>
                         </div>
                     </div>
 
-                    <div className="border-t my-1" />
+                    <div className="border-t my-0.5" />
 
                     {/* TEMPLATES SECTION */}
-                    <div className="space-y-6">
+                    <div className="space-y-3">
 
-                        {/* CUSTOM TEMPLATES */}
+                        {/* STANDARD TEMPLATES (Moved Top) */}
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2 cursor-pointer p-1 hover:bg-muted/30 rounded" onClick={() => setIsStandardExpanded(!isStandardExpanded)}>
+                                {isStandardExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                <h4 className="text-sm font-bold leading-none text-foreground tracking-wide">{t.standardTemplates}</h4>
+                            </div>
+
+                            {isStandardExpanded && (
+                                <div className="space-y-1 pl-2">
+                                    {categories.map(category => (
+                                        <Card key={category} className="overflow-hidden border-none shadow-none bg-muted/20">
+                                            <div
+                                                className="flex items-center justify-between p-1.5 cursor-pointer hover:bg-muted/40 transition-colors"
+                                                onClick={() => toggleCategory(category)}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {expandedCategories.includes(category) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                                    <span className="text-sm font-medium">{category}</span>
+                                                </div>
+                                            </div>
+
+                                            {expandedCategories.includes(category) && (
+                                                <div className="px-2 pb-1 space-y-1 animate-in slide-in-from-top-1 duration-200">
+                                                    {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
+                                                        <div key={t.id} className="text-xs p-1.5 rounded-md bg-background border">
+                                                            <div className="font-medium text-primary">{t.name}</div>
+                                                            <div className="text-[10px] text-muted-foreground mt-0.5 leading-tight">({t.objective})</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </Card>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* CUSTOM TEMPLATES (Moved Bottom) */}
                         <div className="space-y-1">
                             <div className="flex items-center gap-2 cursor-pointer p-1 hover:bg-muted/30 rounded" onClick={() => setIsCustomExpanded(!isCustomExpanded)}>
                                 {isCustomExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -211,7 +249,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                             {isCustomExpanded && (
                                 <>
-                                    <div className="pl-6">
+                                    <div className="pl-6 py-1">
                                         <Dialog open={isAddTemplateOpen} onOpenChange={(open) => {
                                             if (!open) { setEditingTemplate(null); setNewName(''); setNewPrompt(''); }
                                             setIsAddTemplateOpen(open);
@@ -257,7 +295,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                                     <div className="space-y-1 pl-2">
                                         {templates.map(tmp => (
-                                            <div key={tmp.id} className="group flex items-center justify-between p-2 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
+                                            <div key={tmp.id} className="group flex items-center justify-between p-1.5 border rounded-lg bg-card hover:bg-muted/30 transition-colors">
                                                 <span className="text-sm font-medium truncate flex-1">{tmp.name}</span>
                                                 <div className="flex gap-1">
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleEditTemplate(tmp)}>
@@ -274,45 +312,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </>
                             )}
                         </div>
-
-
-                        {/* STANDARD TEMPLATES */}
-                        <div className="space-y-1">
-                            <div className="flex items-center gap-2 cursor-pointer p-1 hover:bg-muted/30 rounded" onClick={() => setIsStandardExpanded(!isStandardExpanded)}>
-                                {isStandardExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                                <h4 className="text-sm font-bold leading-none text-foreground tracking-wide">{t.standardTemplates}</h4>
-                            </div>
-
-                            {isStandardExpanded && (
-                                <div className="space-y-2 pl-2">
-                                    {categories.map(category => (
-                                        <Card key={category} className="overflow-hidden border-none shadow-none bg-muted/20">
-                                            <div
-                                                className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/40 transition-colors"
-                                                onClick={() => toggleCategory(category)}
-                                            >
-                                                <div className="flex items-center gap-2">
-                                                    {expandedCategories.includes(category) ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                                    <span className="text-sm font-medium">{category}</span>
-                                                </div>
-                                            </div>
-
-                                            {expandedCategories.includes(category) && (
-                                                <div className="px-3 pb-2 space-y-2 animate-in slide-in-from-top-1 duration-200">
-                                                    {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
-                                                        <div key={t.id} className="text-sm p-2 rounded-md bg-background border">
-                                                            <div className="font-medium text-primary">{t.name}</div>
-                                                            <div className="text-xs text-muted-foreground mt-1">({t.objective})</div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </Card>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
 
                     </div>
                 </div>

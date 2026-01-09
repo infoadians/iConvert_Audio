@@ -157,88 +157,101 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                         )}
 
                         {isMenuOpen && (
-                            <div className="absolute top-full left-0 mt-2 w-72 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
-                                {/* ... Menu content ... */}
-                                <div className="p-3 border-b flex justify-between items-center bg-muted/20 rounded-t-lg">
-                                    <h4 className="font-semibold text-sm">
-                                        {menuView === 'main' && (t.templates || 'Select Template')}
-                                        {menuView === 'custom' && 'Custom Templates'}
-                                        {menuView === 'standard' && 'Standard Templates'}
-                                    </h4>
-                                    <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => setIsMenuOpen(false)}>
-                                        <X className="h-3 w-3" />
-                                    </Button>
-                                </div>
+                            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsMenuOpen(false)}>
+                                <div
+                                    className="bg-popover w-full max-w-sm max-h-[80vh] rounded-xl overflow-hidden shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-5 duration-200 flex flex-col"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    {/* Menu Header */}
+                                    <div className="p-4 border-b flex justify-between items-center bg-muted/10">
+                                        <h4 className="font-semibold text-sm">
+                                            {menuView === 'main' && (t.templates || 'Select Template')}
+                                            {menuView === 'custom' && 'Custom Templates'}
+                                            {menuView === 'standard' && 'Standard Templates'}
+                                        </h4>
+                                        <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full" onClick={() => setIsMenuOpen(false)}>
+                                            <X className="h-4 w-4" />
+                                        </Button>
+                                    </div>
 
-                                <div className="p-2 max-h-[300px] overflow-y-auto">
-                                    {menuView === 'main' && (
-                                        <div className="space-y-1">
-                                            <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('custom')}>
-                                                <span>Custom Templates</span>
-                                                <ChevronRight className="h-4 w-4 opacity-50" />
-                                            </Button>
-                                            <Button variant="ghost" className="w-full justify-between font-normal h-8" onClick={() => setMenuView('standard')}>
-                                                <span>Standard Templates</span>
-                                                <ChevronRight className="h-4 w-4 opacity-50" />
-                                            </Button>
-                                        </div>
-                                    )}
-
-                                    {menuView === 'custom' && (
-                                        <div className="space-y-1">
-                                            <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
-                                                &larr; Back
-                                            </Button>
-                                            {templates.map(tmp => (
-                                                <Button
-                                                    key={tmp.id}
-                                                    variant="ghost"
-                                                    className="w-full justify-start text-sm h-auto py-1.5"
-                                                    onClick={() => { onProcess(tmp); setIsMenuOpen(false); }}
-                                                >
-                                                    {tmp.name}
+                                    {/* Menu Content - Scrollable */}
+                                    <div className="p-2 overflow-y-auto">
+                                        {menuView === 'main' && (
+                                            <div className="space-y-1 p-2">
+                                                <Button variant="ghost" className="w-full justify-between font-medium h-12 text-base px-4 bg-card border shadow-sm mb-2" onClick={() => setMenuView('custom')}>
+                                                    <span>Custom Templates</span>
+                                                    <ChevronRight className="h-5 w-5 opacity-50" />
                                                 </Button>
-                                            ))}
-                                        </div>
-                                    )}
+                                                <Button variant="ghost" className="w-full justify-between font-medium h-12 text-base px-4 bg-card border shadow-sm" onClick={() => setMenuView('standard')}>
+                                                    <span>Standard Templates</span>
+                                                    <ChevronRight className="h-5 w-5 opacity-50" />
+                                                </Button>
+                                            </div>
+                                        )}
 
-                                    {menuView === 'standard' && (
-                                        <div className="space-y-1">
-                                            <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-1 h-6" onClick={() => setMenuView('main')}>
-                                                &larr; Back
-                                            </Button>
+                                        {menuView === 'custom' && (
+                                            <div className="space-y-1">
+                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-2 h-8 px-2" onClick={() => setMenuView('main')}>
+                                                    &larr; Back
+                                                </Button>
 
-                                            {categories.map(category => (
-                                                <div key={category} className="border-b last:border-0 border-border/50">
-                                                    <div
-                                                        className="flex items-center justify-between p-2 cursor-pointer hover:bg-muted/50 rounded-sm"
-                                                        onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
-                                                    >
-                                                        <span className="text-sm font-medium">{category}</span>
-                                                        {selectedCategory === category ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                                {templates.length === 0 ? (
+                                                    <div className="text-center py-8 text-muted-foreground text-sm italic">
+                                                        No custom templates found.
                                                     </div>
+                                                ) : (
+                                                    templates.map(tmp => (
+                                                        <Button
+                                                            key={tmp.id}
+                                                            variant="ghost"
+                                                            className="w-full justify-start text-sm h-auto py-3 px-4 border-b last:border-0"
+                                                            onClick={() => { onProcess(tmp); setIsMenuOpen(false); }}
+                                                        >
+                                                            {tmp.name}
+                                                        </Button>
+                                                    ))
+                                                )}
+                                            </div>
+                                        )}
 
-                                                    {selectedCategory === category && (
-                                                        <div className="pl-2 pr-1 py-1 space-y-1 bg-muted/10">
-                                                            {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
-                                                                <Button
-                                                                    key={t.id}
-                                                                    variant="ghost"
-                                                                    className="w-full justify-start text-xs h-auto py-2 whitespace-normal text-left"
-                                                                    onClick={() => { onProcess(t); setIsMenuOpen(false); }}
-                                                                >
-                                                                    <div className="flex flex-col gap-0.5">
-                                                                        <span className="font-medium">{t.name}</span>
-                                                                        <span className="text-[10px] text-muted-foreground opacity-80">{t.objective}</span>
-                                                                    </div>
-                                                                </Button>
-                                                            ))}
+                                        {menuView === 'standard' && (
+                                            <div className="space-y-1">
+                                                <Button variant="ghost" size="sm" className="w-full justify-start text-xs text-muted-foreground mb-2 h-8 px-2" onClick={() => setMenuView('main')}>
+                                                    &larr; Back
+                                                </Button>
+
+                                                {categories.map(category => (
+                                                    <div key={category} className="border rounded-lg mb-2 overflow-hidden">
+                                                        <div
+                                                            className="flex items-center justify-between p-3 cursor-pointer bg-muted/20 hover:bg-muted/30 transition-colors"
+                                                            onClick={() => setSelectedCategory(selectedCategory === category ? null : category)}
+                                                        >
+                                                            <span className="text-sm font-medium">{category}</span>
+                                                            {selectedCategory === category ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+
+                                                        {selectedCategory === category && (
+                                                            <div className="bg-background divide-y">
+                                                                {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
+                                                                    <Button
+                                                                        key={t.id}
+                                                                        variant="ghost"
+                                                                        className="w-full justify-start text-sm h-auto py-3 px-4 whitespace-normal text-left hover:bg-muted/10 rounded-none"
+                                                                        onClick={() => { onProcess(t); setIsMenuOpen(false); }}
+                                                                    >
+                                                                        <div className="flex flex-col gap-1">
+                                                                            <span className="font-medium text-primary">{t.name}</span>
+                                                                            <span className="text-xs text-muted-foreground font-normal leading-relaxed">{t.objective}</span>
+                                                                        </div>
+                                                                    </Button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}

@@ -495,7 +495,8 @@ Reglas estrictas:
 2.  **Verbatim:** Transcribe palabra por palabra exactamente lo que se dice. NO parafrasees, no resumas, no omitas nada.
 3.  **Formato:** Agrupa en párrafos lógicos y cortos (máx. 4 oraciones) para legibilidad, pero sin alterar el orden de las palabras.
 4.  **Puntuación:** Usa puntuación estándar para reflejar el ritmo y las pausas naturales del habla.
-5.  **Multilenguaje:** Si se detectan varios idiomas, transcribe cada uno en su idioma original.` }
+5.  **Multilenguaje:** Si se detectan varios idiomas, transcribe cada uno en su idioma original.
+6.  **SALIDA:** Entrega SOLAMENTE el texto de la transcripción. NO incluyas introducciones, encabezados, ni notas finales. Empieza directamente con el primer hablante o la primera frase.` }
             ]
           }
         ]
