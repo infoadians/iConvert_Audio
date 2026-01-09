@@ -21,9 +21,13 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-8">
         <div className="flex items-center gap-3">
-          <span className="text-xl sm:text-2xl font-bold tracking-tight">
-            {lang === 'es' ? "Convierte, Transcribe, Procesa" : "Convert, Transcribe & Process"}
-          </span>
+          <img src="/bella-logo.png" alt="Logo" className="h-12 w-auto" />
+          <div className="flex flex-col -space-y-1">
+            <span className="text-3xl font-extrabold tracking-tight">Transcribo</span>
+            <span className="text-sm text-muted-foreground font-medium">
+              {lang === 'es' ? "Convierte, Transcribe, Procesa" : "Convert, Transcribe & Process"}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

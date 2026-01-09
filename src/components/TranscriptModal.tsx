@@ -1,7 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
-//@ts-ignore
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from 'jspdf';
 import { ProcessTemplate } from '../types';
 import { PROCESSING_TEMPLATES, TemplateCategory } from '../data/templates';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -44,16 +43,43 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
 
     const handleDownload = (format: 'txt' | 'md' | 'pdf' = 'txt') => {
         if (format === 'pdf') {
-            const element = pdfContentRef.current;
-            if (!element) return;
-            const opt = {
-                margin: 1,
-                filename: `${fileName.split('.')[0]}_transcript.pdf`,
-                image: { type: 'jpeg' as const, quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' as const }
-            };
-            html2pdf().set(opt).from(element).save();
+            const doc = new jsPDF();
+
+            // Set font properties
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+
+            // Split text to fit page width (A4 width is ~210mm, leaving margins)
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const margin = 15;
+            const maxLineWidth = pageWidth - (margin * 2);
+            const lineHeight = 6;
+
+            const splitText = doc.splitTextToSize(content, maxLineWidth);
+
+            let cursorY = margin;
+
+            // Title
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(14);
+            doc.text(fileName, margin, cursorY);
+            cursorY += 10;
+
+            // Content
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(11);
+
+            splitText.forEach((line: string) => {
+                if (cursorY > pageHeight - margin) {
+                    doc.addPage();
+                    cursorY = margin;
+                }
+                doc.text(line, margin, cursorY);
+                cursorY += lineHeight;
+            });
+
+            doc.save(`${fileName.split('.')[0]}_transcript.pdf`);
             return;
         }
 
