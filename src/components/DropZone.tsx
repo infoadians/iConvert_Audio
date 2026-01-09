@@ -47,7 +47,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
           <Plus className="h-6 w-6" />
         </div>
         <span className="text-xl font-medium text-primary">
-          Add Audio or Document files
+          {t.dropTitle}
         </span>
       </div>
     );
@@ -78,7 +78,7 @@ export const DropZone: React.FC<DropZoneProps> = ({ onFilesAdded, compact, t }) 
 
       <div className="space-y-1">
         <h3 className="text-xl font-bold tracking-tight">
-          {t.dragDrop || "Drag & drop audio, DOCX, TXT, PDF, MD files here, or click to select"}
+          {t.dropTitle}
         </h3><p className="text-base text-muted-foreground max-w-xs mx-auto text-balance">{t.dropSubtitle}</p>
       </div>
 
