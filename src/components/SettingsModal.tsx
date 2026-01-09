@@ -111,7 +111,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="fixed inset-0 z-50 w-screen h-screen max-w-none m-0 rounded-none flex flex-col gap-0 p-0 bg-background">
+            <DialogContent className="fixed inset-0 z-50 w-screen h-screen max-w-none m-0 rounded-none flex flex-col gap-0 p-0 bg-background !translate-x-0 !translate-y-0 !top-0 !left-0">
                 <DialogHeader className="p-4 border-b">
                     <div className="flex items-center justify-between">
                         <DialogTitle>{t.settings}</DialogTitle>

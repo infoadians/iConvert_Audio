@@ -242,21 +242,21 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                 </div>
                             </div>
                         )}
+
+                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 p-0 flex-shrink-0" onClick={handleCopy} title="Copy to Clipboard">
+                            {copied ? <span className="text-white font-bold">✓</span> : <Copy className="h-4 w-4" />}
+                        </Button>
+
+                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 flex-shrink-0" onClick={() => handleDownload('pdf')}>
+                            PDF
+                        </Button>
+                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 flex-shrink-0" onClick={() => handleDownload('txt')}>
+                            TXT
+                        </Button>
+                        <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 flex-shrink-0" onClick={() => handleDownload('md')}>
+                            MD
+                        </Button>
                     </div>
-
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 w-9 p-0" onClick={handleCopy} title="Copy to Clipboard">
-                        {copied ? <span className="text-white font-bold">✓</span> : <Copy className="h-4 w-4" />}
-                    </Button>
-
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={() => handleDownload('pdf')}>
-                        PDF
-                    </Button>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={() => handleDownload('txt')}>
-                        TXT
-                    </Button>
-                    <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={() => handleDownload('md')}>
-                        MD
-                    </Button>
                 </div>
             </DialogContent>
         </Dialog >
