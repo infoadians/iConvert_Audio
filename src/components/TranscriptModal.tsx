@@ -157,7 +157,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                         )}
 
                         {isMenuOpen && (
-                            <div className="absolute bottom-full left-0 mb-2 w-72 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-bottom-2">
+                            <div className="absolute top-full left-0 mt-2 w-72 rounded-lg border bg-popover text-popover-foreground shadow-2xl z-50 animate-in fade-in slide-in-from-top-2">
                                 {/* ... Menu content ... */}
                                 <div className="p-3 border-b flex justify-between items-center bg-muted/20 rounded-t-lg">
                                     <h4 className="font-semibold text-sm">

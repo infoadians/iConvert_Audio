@@ -74,6 +74,8 @@ export const translations = {
     install: 'Install iConvert',
     installDesc: 'Tap the share icon and select "Add to Home Screen".',
     uiScale: 'UI Scale',
+    view: 'View',
+    convert: 'Convert',
   },
   es: {
     title: 'iConvert Audio',
@@ -147,5 +149,7 @@ export const translations = {
     install: 'Instalar iConvert',
     installDesc: 'Toca el icono de compartir y selecciona "Añadir a Pantalla de Inicio".',
     uiScale: 'Escala UI',
+    view: 'Ver',
+    convert: 'Convertir',
   }
 };

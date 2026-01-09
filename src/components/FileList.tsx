@@ -185,7 +185,7 @@ export const FileList: React.FC<FileListProps> = ({
                   <>
                     {item.status === 'pending' && onConvert && (
                       <Button className="bg-primary text-primary-foreground hover:bg-primary/90" size="sm" onClick={() => onConvert(item.id)}>
-                        {t.convert || "Convert"}
+                        {t.convert}
                       </Button>
                     )}
                     {item.status === 'completed' && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && item.transcriptionStatus !== 'processing' && (
@@ -213,7 +213,7 @@ export const FileList: React.FC<FileListProps> = ({
                     {onViewTranscript && (
                       <Button className="bg-primary text-primary-foreground hover:bg-primary/90" size="sm" onClick={() => onViewTranscript(item.id)}>
                         <Eye className="mr-2 h-3.5 w-3.5" />
-                        {t.view || 'View'}
+                        {t.view}
                       </Button>
                     )}
                     {onDownloadTranscript && (
