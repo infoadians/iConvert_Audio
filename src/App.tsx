@@ -630,7 +630,7 @@ Reglas estrictas:
               <div className="text-2xl">✨</div>
               <div className="flex-1">
                 <p className="text-sm font-semibold">{t.install}</p>
-                <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono">iConvert Audio, by Bella Labs, V0.3.7</p>
+                <p className="text-xs text-muted-foreground">{t.installDesc}</p>
               </div>
               <button onClick={() => setShowIPhoneTip(false)} className="text-muted-foreground hover:text-foreground">×</button>
             </div>
