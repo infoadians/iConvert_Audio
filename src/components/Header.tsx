@@ -39,43 +39,47 @@ export const Header: React.FC<HeaderProps> = ({
                     <Info className="h-4 w-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                      <Info className="h-6 w-6 text-primary" />
-                      {t.infoModal.title}
-                    </DialogTitle>
-                  </DialogHeader>
-                  <div className="mt-4 space-y-6">
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      {t.infoModal.description}
-                    </p>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="rounded-lg border p-4 bg-muted/50">
-                        <h4 className="font-semibold mb-2">{t.infoModal.sections.queue.split(':')[0]}</h4>
-                        <p className="text-sm text-muted-foreground">{t.infoModal.sections.queue.split(':')[1]}</p>
-                      </div>
-                      <div className="rounded-lg border p-4 bg-muted/50">
-                        <h4 className="font-semibold mb-2">{t.infoModal.sections.transcribed.split(':')[0]}</h4>
-                        <p className="text-sm text-muted-foreground">{t.infoModal.sections.transcribed.split(':')[1]}</p>
-                      </div>
-                      <div className="rounded-lg border p-4 bg-muted/50">
-                        <h4 className="font-semibold mb-2">{t.infoModal.sections.documents.split(':')[0]}</h4>
-                        <p className="text-sm text-muted-foreground">{t.infoModal.sections.documents.split(':')[1]}</p>
-                      </div>
-                      <div className="rounded-lg border p-4 bg-muted/50">
-                        <h4 className="font-semibold mb-2">{t.infoModal.sections.results.split(':')[0]}</h4>
-                        <p className="text-sm text-muted-foreground">{t.infoModal.sections.results.split(':')[1]}</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-primary/5 rounded-lg p-4 border border-primary/10">
-                      <p className="text-sm font-medium text-primary">
-                        {t.infoModal.templates}
-                      </p>
-                    </div>
+                <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0">
+                  <div className="p-6 pb-2">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+                        <Info className="h-6 w-6 text-primary" />
+                        {t.infoModal.title}
+                      </DialogTitle>
+                    </DialogHeader>
                   </div>
+
+                  <ScrollArea className="flex-1 px-6 pb-6">
+                    <div className="mt-2 space-y-6">
+                      <p className="text-lg text-muted-foreground leading-relaxed">
+                        {t.infoModal.description}
+                      </p>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="rounded-lg border p-4 bg-muted/50">
+                          <h4 className="font-semibold mb-2">{t.infoModal.sections.queue.split(':')[0]}</h4>
+                          <p className="text-sm text-muted-foreground">{t.infoModal.sections.queue.split(':')[1]}</p>
+                        </div>
+                        <div className="rounded-lg border p-4 bg-muted/50">
+                          <h4 className="font-semibold mb-2">{t.infoModal.sections.transcribed.split(':')[0]}</h4>
+                          <p className="text-sm text-muted-foreground">{t.infoModal.sections.transcribed.split(':')[1]}</p>
+                        </div>
+                        <div className="rounded-lg border p-4 bg-muted/50">
+                          <h4 className="font-semibold mb-2">{t.infoModal.sections.documents.split(':')[0]}</h4>
+                          <p className="text-sm text-muted-foreground">{t.infoModal.sections.documents.split(':')[1]}</p>
+                        </div>
+                        <div className="rounded-lg border p-4 bg-muted/50">
+                          <h4 className="font-semibold mb-2">{t.infoModal.sections.results.split(':')[0]}</h4>
+                          <p className="text-sm text-muted-foreground">{t.infoModal.sections.results.split(':')[1]}</p>
+                        </div>
+
+                        <div className="rounded-lg border p-4 bg-muted/50 sm:col-span-2">
+                          <h4 className="font-semibold mb-2">{t.infoModal.templates.split(':')[0]}</h4>
+                          <p className="text-sm text-muted-foreground">{t.infoModal.templates.split(':')[1]}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </ScrollArea>
                 </DialogContent>
               </Dialog>
             </div>
