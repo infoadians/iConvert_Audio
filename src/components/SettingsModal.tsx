@@ -301,6 +301,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         </div>
 
                     </div>
+                </div>
             </DialogContent>
         </Dialog>
     );
