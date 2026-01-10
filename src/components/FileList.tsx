@@ -213,7 +213,7 @@ export const FileList: React.FC<FileListProps> = ({
                         {t.convert}
                       </Button>
                     )}
-                    {item.status === 'completed' && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && item.transcriptionStatus !== 'processing' && (
+                    {(item.status === 'completed' || item.status === 'pending') && item.transcriptionStatus !== 'done' && hasApiKey && onTranscribe && item.transcriptionStatus !== 'processing' && (
                       <Button
                         className="bg-primary text-primary-foreground hover:bg-primary/90"
                         size="sm"

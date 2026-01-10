@@ -50,7 +50,7 @@ export class FFmpegManager {
     file: File,
     options: ConversionOptions,
     onProgress: (progress: number) => void
-  ): Promise<{ url: string; name: string }> {
+  ): Promise<{ url: string; name: string; size: number }> {
     if (!this.isLoaded) await this.load();
 
     // Sanitize input name to be safe for ffmpeg virtual fs
@@ -92,7 +92,7 @@ export class FFmpegManager {
         console.warn('FS cleanup warning:', e);
       }
 
-      return { url, name: outputName };
+      return { url, name: outputName, size: blob.size };
     } catch (error) {
       console.error('Error during conversion:', error);
       throw error;

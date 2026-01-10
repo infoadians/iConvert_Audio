@@ -430,12 +430,12 @@ const App: React.FC = () => {
     ));
 
     try {
-      const { url, name } = await ffmpegManager.convert(targetFile.file, options, (progress) => {
+      const { url, name, size } = await ffmpegManager.convert(targetFile.file, options, (progress) => {
         setFiles(prev => prev.map(f => f.id === id ? { ...f, progress: Math.round(progress * 100) } : f));
       });
 
       setFiles(prev => prev.map(f =>
-        f.id === id ? { ...f, status: 'completed', outputUrl: url, outputName: name, progress: 100 } : f
+        f.id === id ? { ...f, status: 'completed', outputUrl: url, outputName: name, size, progress: 100 } : f
       ));
       toast.success("Conversion complete");
     } catch (err: any) {
@@ -505,13 +505,13 @@ const App: React.FC = () => {
           // Show converting status
           setFiles(prev => prev.map(f => f.id === id ? { ...f, status: 'converting', progress: 0 } : f));
 
-          const { url, name } = await ffmpegManager.convert(targetFile.file, options, (progress) => {
+          const { url, name, size } = await ffmpegManager.convert(targetFile.file, options, (progress) => {
             setFiles(prev => prev.map(f => f.id === id ? { ...f, progress: Math.round(progress * 100) } : f));
           });
 
           // Update to completed
           setFiles(prev => prev.map(f =>
-            f.id === id ? { ...f, status: 'completed', outputUrl: url, outputName: name, progress: 100, transcriptionStatus: 'processing' } : f
+            f.id === id ? { ...f, status: 'completed', outputUrl: url, outputName: name, size, progress: 100, transcriptionStatus: 'processing' } : f
           ));
 
           const response = await fetch(url);
