@@ -61,20 +61,21 @@ const AnimatedStatus = ({ t, duration }: { t: any, duration?: number }) => {
   }, []);
 
   React.useEffect(() => {
-    // Determine cycle interval based on estimated time
+    // Determine cycle interval based on estimated time (using duration directly)
     let cycleInterval = 2500;
-    if (timeLeft !== null && timeLeft > 0) {
+    if (duration) {
+      // Re-calculate the estimate here just to set the interval (3s per minute)
+      const estimated = Math.ceil((duration / 60) * 3);
+      const totalSeconds = Math.max(estimated, 3);
       // Divide total time by 4 steps, but ensure it's not too fast (min 1s)
-      cycleInterval = Math.max(Math.floor((timeLeft * 1000) / 4), 1000);
+      cycleInterval = Math.max(Math.floor((totalSeconds * 1000) / 4), 1000);
     }
 
-    // Reset step to 0 when time changes significantly (start)
-    // But mainly just update interval
     const interval = setInterval(() => {
       setStep(prev => (prev + 1) % 4);
     }, cycleInterval);
     return () => clearInterval(interval);
-  }, [timeLeft]); // Re-evaluate if timeframe changes drastically, though usually just set once
+  }, [duration]);
 
   const steps = [
     t.statusPreparing || "Preparing...",
@@ -83,7 +84,7 @@ const AnimatedStatus = ({ t, duration }: { t: any, duration?: number }) => {
     t.statusReceiving || "Receiving..."
   ];
 
-  return <span>{timeLeft !== null && timeLeft > 0 ? `(${timeLeft}s) ` : ''}{steps[step]}</span>;
+  return <span>{timeLeft !== null && timeLeft > 0 ? `${timeLeft} ` : ''}{steps[step]}</span>;
 };
 
 export const FileList: React.FC<FileListProps> = ({
