@@ -36,8 +36,29 @@ const formatDuration = (seconds?: number) => {
 };
 
 
-const AnimatedStatus = ({ t }: { t: any }) => {
+const AnimatedStatus = ({ t, duration }: { t: any, duration?: number }) => {
   const [step, setStep] = React.useState(0);
+  const [timeLeft, setTimeLeft] = React.useState<number | null>(null);
+
+  React.useEffect(() => {
+    if (duration) {
+      // 2.5 seconds per minute logic (roughly)
+      const estimated = Math.ceil((duration / 60) * 2.5);
+      // Ensure at least 3 seconds if it's very short, or just estimated.
+      setTimeLeft(Math.max(estimated, 3));
+    }
+  }, [duration]);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev === null) return null;
+        if (prev <= 0) return 0;
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -53,7 +74,7 @@ const AnimatedStatus = ({ t }: { t: any }) => {
     t.statusReceiving || "Receiving..."
   ];
 
-  return <span>{steps[step]}</span>;
+  return <span>{steps[step]} {timeLeft !== null && timeLeft > 0 ? `(${timeLeft}s)` : ''}</span>;
 };
 
 export const FileList: React.FC<FileListProps> = ({
@@ -193,7 +214,7 @@ export const FileList: React.FC<FileListProps> = ({
 
                     {item.transcriptionStatus === 'processing' && (
                       <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap">
-                        <AnimatedStatus t={t} />
+                        <AnimatedStatus t={t} duration={item.duration} />
                       </span>
                     )}
                     {item.status === 'completed' && type === 'queue' && <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Converted</span>}
