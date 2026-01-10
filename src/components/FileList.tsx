@@ -42,8 +42,8 @@ const AnimatedStatus = ({ t, duration }: { t: any, duration?: number }) => {
 
   React.useEffect(() => {
     if (duration) {
-      // 2.5 seconds per minute logic (roughly)
-      const estimated = Math.ceil((duration / 60) * 2.5);
+      // 3 seconds per minute logic
+      const estimated = Math.ceil((duration / 60) * 3);
       // Ensure at least 3 seconds if it's very short, or just estimated.
       setTimeLeft(Math.max(estimated, 3));
     }
@@ -61,11 +61,20 @@ const AnimatedStatus = ({ t, duration }: { t: any, duration?: number }) => {
   }, []);
 
   React.useEffect(() => {
+    // Determine cycle interval based on estimated time
+    let cycleInterval = 2500;
+    if (timeLeft !== null && timeLeft > 0) {
+      // Divide total time by 4 steps, but ensure it's not too fast (min 1s)
+      cycleInterval = Math.max(Math.floor((timeLeft * 1000) / 4), 1000);
+    }
+
+    // Reset step to 0 when time changes significantly (start)
+    // But mainly just update interval
     const interval = setInterval(() => {
       setStep(prev => (prev + 1) % 4);
-    }, 2500);
+    }, cycleInterval);
     return () => clearInterval(interval);
-  }, []);
+  }, [timeLeft]); // Re-evaluate if timeframe changes drastically, though usually just set once
 
   const steps = [
     t.statusPreparing || "Preparing...",
@@ -74,7 +83,7 @@ const AnimatedStatus = ({ t, duration }: { t: any, duration?: number }) => {
     t.statusReceiving || "Receiving..."
   ];
 
-  return <span>{steps[step]} {timeLeft !== null && timeLeft > 0 ? `(${timeLeft}s)` : ''}</span>;
+  return <span>{timeLeft !== null && timeLeft > 0 ? `(${timeLeft}s) ` : ''}{steps[step]}</span>;
 };
 
 export const FileList: React.FC<FileListProps> = ({
@@ -212,7 +221,7 @@ export const FileList: React.FC<FileListProps> = ({
                     <span>{formatSize(item.size)}</span>
                     {item.duration && <span>• {formatDuration(item.duration)}</span>}
 
-                    {item.transcriptionStatus === 'processing' && (
+                    {item.transcriptionStatus === 'processing' && item.status !== 'converting' && (
                       <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap">
                         <AnimatedStatus t={t} duration={item.duration} />
                       </span>
