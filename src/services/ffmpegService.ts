@@ -24,7 +24,7 @@ export class FFmpegManager {
 
     // Use 0.12.4 core which is the stable pair for 0.12.7 lib
     const baseURL = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.4/dist/esm';
-    
+
     try {
       // We load assets in parallel to improve startup speed
       const [coreURL, wasmURL, workerURL] = await Promise.all([
@@ -38,7 +38,7 @@ export class FFmpegManager {
         wasmURL,
         workerURL,
       });
-      
+
       this.isLoaded = true;
     } catch (error) {
       console.error('Detailed FFmpeg Load Error:', error);
@@ -47,7 +47,7 @@ export class FFmpegManager {
   }
 
   public async convert(
-    file: File, 
+    file: File,
     options: ConversionOptions,
     onProgress: (progress: number) => void
   ): Promise<{ url: string; name: string }> {
@@ -56,7 +56,7 @@ export class FFmpegManager {
     // Sanitize input name to be safe for ffmpeg virtual fs
     const safeName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
     const inputName = 'input_' + safeName;
-    const outputName = safeName.replace(/\.[^/.]+$/, "") + ".mp3";
+    const outputName = safeName.replace(/\.[^/.]+$/, "") + ".opus";
 
     const progressHandler = ({ progress }: { progress: number }) => {
       onProgress(progress);
@@ -69,16 +69,19 @@ export class FFmpegManager {
 
       const command = [
         '-i', inputName,
-        '-ar', options.sampleRate,
-        '-ac', '2',
+        '-c:a', 'libopus',
         '-b:a', options.bitrate,
+        '-ac', '1',
+        '-ar', '48000',
+        '-vbr', 'on',
+        '-compression_level', '10',
         outputName
       ];
 
       await this.ffmpeg.exec(command);
 
       const data = await this.ffmpeg.readFile(outputName);
-      const blob = new Blob([(data as any).buffer], { type: 'audio/mp3' });
+      const blob = new Blob([(data as any).buffer], { type: 'audio/ogg; codecs=opus' });
       const url = URL.createObjectURL(blob);
 
       // Clean up virtual file system

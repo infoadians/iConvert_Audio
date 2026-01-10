@@ -36,8 +36,8 @@ const App: React.FC = () => {
   const [showIPhoneTip, setShowIPhoneTip] = useState(false);
   // Hardcoded options for conversion
   const options: ConversionOptions = {
-    bitrate: '128k',
-    sampleRate: '44100',
+    bitrate: '24k',
+    sampleRate: '48000',
   };
   const [lang, setLang] = useState<Language>(() => {
     return (localStorage.getItem('iconvert_lang') as Language) || 'en';
@@ -451,10 +451,10 @@ const App: React.FC = () => {
 
   // --- Transcription Logic ---
 
-  const fileToBase64 = (file: File): Promise<string> => {
+  const fileToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(blob);
       reader.onload = () => {
         const result = reader.result as string;
         // Remove data URL prefix (e.g., "data:audio/mpeg;base64,")
@@ -466,7 +466,15 @@ const App: React.FC = () => {
   };
 
   const transcribeFile = async (id: string) => {
-    const targetFile = files.find(f => f.id === id);
+    // We need to find the file in the current state
+    const currentFiles = await new Promise<AudioFile[]>(resolve => {
+      setFiles(prev => {
+        resolve(prev);
+        return prev;
+      });
+    });
+    const targetFile = currentFiles.find(f => f.id === id);
+
     if (!targetFile || !apiKey) {
       if (!apiKey) toast.error("API Key required for transcription");
       return;
@@ -477,7 +485,48 @@ const App: React.FC = () => {
     ));
 
     try {
-      const base64Data = await fileToBase64(targetFile.file);
+      let blobToProcess: Blob = targetFile.file;
+      let mimeType = targetFile.file.type || 'audio/mp3';
+
+      // AUTO-CONVERSION LOGIC
+      // If we have a converted file, use it. If not, convert it now.
+      if (targetFile.status === 'completed' && targetFile.outputUrl) {
+        try {
+          const response = await fetch(targetFile.outputUrl);
+          blobToProcess = await response.blob();
+          mimeType = 'audio/ogg';
+        } catch (e) {
+          console.warn("Using original file as converted file could not be fetched", e);
+        }
+      } else {
+        // Perform auto-conversion
+        toast.info("Optimizing audio for faster processing...");
+        try {
+          // Show converting status
+          setFiles(prev => prev.map(f => f.id === id ? { ...f, status: 'converting', progress: 0 } : f));
+
+          const { url, name } = await ffmpegManager.convert(targetFile.file, options, (progress) => {
+            setFiles(prev => prev.map(f => f.id === id ? { ...f, progress: Math.round(progress * 100) } : f));
+          });
+
+          // Update to completed
+          setFiles(prev => prev.map(f =>
+            f.id === id ? { ...f, status: 'completed', outputUrl: url, outputName: name, progress: 100, transcriptionStatus: 'processing' } : f
+          ));
+
+          const response = await fetch(url);
+          blobToProcess = await response.blob();
+          mimeType = 'audio/ogg';
+
+        } catch (convErr) {
+          console.error("Auto-conversion failed", convErr);
+          toast.warning("Optimization failed, sending original file.");
+          // Reset status to allow retry or show error, but continue transcription with original
+          setFiles(prev => prev.map(f => f.id === id ? { ...f, status: 'error' } : f));
+        }
+      }
+
+      const base64Data = await fileToBase64(blobToProcess);
       const ai = new GoogleGenAI({ apiKey });
 
       const response = await ai.models.generateContent({
@@ -486,7 +535,7 @@ const App: React.FC = () => {
           {
             role: 'user',
             parts: [
-              { inlineData: { mimeType: targetFile.file.type || 'audio/mp3', data: base64Data } },
+              { inlineData: { mimeType: mimeType, data: base64Data } },
               {
                 text: `Actúa como un Transcriptor Profesional Forense. Tu objetivo es crear una transcripción literal perfecta del audio adjunto.
 
