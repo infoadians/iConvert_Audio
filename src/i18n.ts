@@ -89,6 +89,10 @@ export const translations = {
       },
       templates: 'Templates: You can view over 20 standard templates for professional results, and add new custom templates from the Settings page.'
     },
+    statusPreparing: 'Preparing to send to AI...',
+    statusTransmitting: 'Transmitting for process...',
+    statusProcessing: 'Being Processed by AI...',
+    statusReceiving: 'Receiving Response...',
   },
   es: {
     title: 'iConvert Audio',
@@ -176,6 +180,10 @@ export const translations = {
         results: 'Resultados Procesados: Encuentra aquí los resúmenes, análisis y datos extraídos al aplicar las plantillas a tus transcripciones y documentos.'
       },
       templates: 'Plantillas: Puedes ver más de 20 plantillas estándar para resultados profesionales, y agregar nuevas plantillas personalizadas desde la página de Ajustes.'
-    }
+    },
+    statusPreparing: 'Preparando envío a IA...',
+    statusTransmitting: 'Transmitiendo para proceso...',
+    statusProcessing: 'Siendo procesado por IA...',
+    statusReceiving: 'Recibiendo respuesta...',
   }
 };

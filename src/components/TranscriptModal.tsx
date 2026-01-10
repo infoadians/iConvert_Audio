@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
 import { ProcessTemplate } from '../types';
@@ -6,7 +6,7 @@ import { PROCESSING_TEMPLATES, TemplateCategory } from '../data/templates';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ZoomIn, ZoomOut, X, FileText, Download, Copy, Play, ChevronRight, ChevronDown } from 'lucide-react';
+import { ZoomIn, ZoomOut, X, FileText, Download, Copy, Play, ChevronRight, ChevronDown, Loader2, Send, Cpu, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 
@@ -29,11 +29,33 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuView, setMenuView] = useState<'main' | 'custom' | 'standard'>('main');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+    const [processingStep, setProcessingStep] = useState(0);
 
     const pdfContentRef = useRef<HTMLDivElement>(null);
 
     // Group Standard Templates by Category
     const categories: TemplateCategory[] = useMemo(() => ['Generales', 'Gestión y Negocios', 'Contenido y Comunicación', 'Análisis y Estudio'], []);
+
+    // Animation cycle for processing
+    useEffect(() => {
+        if (!isProcessing) {
+            setProcessingStep(0);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            setProcessingStep(prev => (prev + 1) % 4);
+        }, 2500);
+
+        return () => clearInterval(interval);
+    }, [isProcessing]);
+
+    const processingStates = [
+        { text: t.statusPreparing || "Preparing...", icon: Loader2, color: "text-blue-500" },
+        { text: t.statusTransmitting || "Transmitting...", icon: Send, color: "text-yellow-500" },
+        { text: t.statusProcessing || "Processing...", icon: Cpu, color: "text-purple-500" },
+        { text: t.statusReceiving || "Receiving...", icon: Radio, color: "text-green-500" }
+    ];
 
     const handleCopy = () => {
         navigator.clipboard.writeText(content);
@@ -107,6 +129,8 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
         }
     };
 
+    const CurrentStatusIcon = processingStates[processingStep].icon;
+
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
             <DialogContent className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[90vw] h-[90vh] max-w-4xl flex flex-col p-0 gap-0">
@@ -130,9 +154,29 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                 <div className="flex-1 overflow-hidden relative bg-muted/10">
                     <ScrollArea className="h-full w-full">
                         {isProcessing ? (
-                            <div className="flex flex-col items-center justify-center h-full space-y-4 min-h-[200px]">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                                <p className="text-muted-foreground animate-pulse text-sm">{t.processingAI}</p>
+                            <div className="flex flex-col items-center justify-center h-full space-y-6 min-h-[200px] animate-in fade-in duration-500">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-primary/20 rounded-full animate-ping"></div>
+                                    <div className={cn("relative p-4 rounded-full bg-background border-2 shadow-lg transition-colors duration-500", processingStates[processingStep].color.replace('text-', 'border-'))}>
+                                        <CurrentStatusIcon className={cn("h-8 w-8 transition-colors duration-500", processingStates[processingStep].color)} />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-center gap-2">
+                                    <p className="text-foreground font-medium text-lg animate-pulse transition-all duration-500 min-w-[200px] text-center">
+                                        {processingStates[processingStep].text}
+                                    </p>
+                                    <div className="flex gap-1.5 pt-2">
+                                        {[0, 1, 2, 3].map((step) => (
+                                            <div
+                                                key={step}
+                                                className={cn(
+                                                    "h-1.5 rounded-full transition-all duration-500",
+                                                    step === processingStep ? "w-8 bg-primary" : "w-1.5 bg-muted-foreground/30"
+                                                )}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         ) : (
                             <div

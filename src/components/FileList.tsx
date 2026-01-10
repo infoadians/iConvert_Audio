@@ -35,6 +35,27 @@ const formatDuration = (seconds?: number) => {
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 };
 
+
+const AnimatedStatus = ({ t }: { t: any }) => {
+  const [step, setStep] = React.useState(0);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setStep(prev => (prev + 1) % 4);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, []);
+
+  const steps = [
+    t.statusPreparing || "Preparing...",
+    t.statusTransmitting || "Transmitting...",
+    t.statusProcessing || "Processing...",
+    t.statusReceiving || "Receiving..."
+  ];
+
+  return <span>{steps[step]}</span>;
+};
+
 export const FileList: React.FC<FileListProps> = ({
   files = [],
   processedResults = [],
@@ -170,7 +191,11 @@ export const FileList: React.FC<FileListProps> = ({
                     <span>{formatSize(item.size)}</span>
                     {item.duration && <span>• {formatDuration(item.duration)}</span>}
 
-                    {item.transcriptionStatus === 'processing' && <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap">{t.transcribing}</span>}
+                    {item.transcriptionStatus === 'processing' && (
+                      <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider whitespace-nowrap">
+                        <AnimatedStatus t={t} />
+                      </span>
+                    )}
                     {item.status === 'completed' && type === 'queue' && <span className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-500 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Converted</span>}
                     {item.transcriptionStatus === 'done' && <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-500 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold tracking-wider">Transcribed</span>}
                   </div>
