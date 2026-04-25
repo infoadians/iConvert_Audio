@@ -319,7 +319,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                         disabled={isProcessing}
                                     />
                                     <Label htmlFor="keep-original" className="text-xs cursor-pointer whitespace-nowrap">
-                                        {t.keepOriginal || 'Keep Original'}
+                                        {t.keepOriginal || 'Keep'}
                                     </Label>
                                 </div>
                             </>

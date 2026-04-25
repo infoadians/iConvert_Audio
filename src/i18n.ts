@@ -78,7 +78,7 @@ export const translations = {
     view: 'View',
     convert: 'Convert',
     processingAI: 'Processing with AI...',
-    keepOriginal: 'Keep Original',
+    keepOriginal: 'Keep',
     infoModal: {
       title: 'About Transcribo',
       description: 'Transcribe audio to text with AI. Use smart templates to analyze the content of your transcriptions and of your documents securely.',
@@ -171,7 +171,7 @@ export const translations = {
     view: 'Ver',
     convert: 'Convertir',
     processingAI: 'Procesando con IA...',
-    keepOriginal: 'Mantener Original',
+    keepOriginal: 'Mantener',
     infoModal: {
       title: 'Acerca de Transcribo',
       description: 'Transcribe audio a texto con IA. Utiliza plantillas inteligentes para analizar el contenido de tus transcripciones y de tus documentos de forma segura.',
