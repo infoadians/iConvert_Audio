@@ -45,37 +45,18 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
-// Register Service Worker for PWA/Offline functionality
+// Register Service Worker for PWA/Offline functionality.
+// Do NOT auto-reload on update or controllerchange: on iPad PWA, iOS unloads
+// the app aggressively and re-launching often triggers a SW activation, which
+// would force an extra reload every time the user comes back from another app.
+// New SW versions take effect on the next manual refresh / cold start.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
       .then(reg => {
         console.log('ServiceWorker registered:', reg.scope);
-
-        // Check for updates
-        reg.addEventListener('updatefound', () => {
-          const newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New update available and installed
-                console.log('New update available, reloading...');
-                window.location.reload();
-              }
-            });
-          }
-        });
       })
       .catch((err) => console.warn('PWA registration skipped:', err.message));
-  });
-
-  // Handle reload when the new service worker takes over
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!refreshing) {
-      refreshing = true;
-      window.location.reload();
-    }
   });
 }
 
