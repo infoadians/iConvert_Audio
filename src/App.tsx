@@ -282,11 +282,11 @@ const App: React.FC = () => {
         console.error("Fatal initialization error:", err);
       } finally {
         // C. Finish Init — drop the previous 1.0s + 0.8s artificial wait
-        // so iPad PWA cold-starts feel like a resume. Just enough delay
-        // (300ms) for the fade-out transition to look intentional.
+        // around setIsInitializing. Keep a 1000ms fade-out so the splash
+        // transition reads cleanly.
         clearTimeout(safetyTimeout);
         setIsInitializing(false);
-        setTimeout(() => setShowSplash(false), 300);
+        setTimeout(() => setShowSplash(false), 1000);
       }
     };
 
