@@ -10,6 +10,7 @@ import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult, Documen
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { APP_VERSION } from './version';
+import { DEFAULT_TRANSCRIPTION_PROMPT } from './data/prompts';
 import { GoogleGenAI } from "@google/genai";
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -54,6 +55,9 @@ const App: React.FC = () => {
 
   // Process Templates
   const [templates, setTemplates] = useState<ProcessTemplate[]>([]);
+
+  // Transcription prompt (user-overridable; falls back to default)
+  const [transcriptionPrompt, setTranscriptionPrompt] = useState<string>(DEFAULT_TRANSCRIPTION_PROMPT);
 
   // Transcript Modal State
   const [viewingTranscript, setViewingTranscript] = useState<{ id: string, name: string, content: string, source: 'audio' | 'document' } | null>(null);
@@ -163,6 +167,9 @@ const App: React.FC = () => {
 
     const storedFontScale = localStorage.getItem('iconvert_font_scale');
     if (storedFontScale) setFontScale(parseFloat(storedFontScale));
+
+    const storedPrompt = localStorage.getItem('iconvert_transcription_prompt');
+    if (storedPrompt) setTranscriptionPrompt(storedPrompt);
   }, []);
 
   useEffect(() => {
@@ -292,6 +299,17 @@ const App: React.FC = () => {
   const handleSaveFontScale = (scale: number) => {
     setFontScale(scale);
     localStorage.setItem('iconvert_font_scale', scale.toString());
+  };
+
+  const handleSaveTranscriptionPrompt = (prompt: string) => {
+    const trimmed = prompt.trim();
+    const next = trimmed.length ? prompt : DEFAULT_TRANSCRIPTION_PROMPT;
+    setTranscriptionPrompt(next);
+    if (next === DEFAULT_TRANSCRIPTION_PROMPT) {
+      localStorage.removeItem('iconvert_transcription_prompt');
+    } else {
+      localStorage.setItem('iconvert_transcription_prompt', next);
+    }
   };
 
   const getAudioDuration = (file: File): Promise<number> => {
@@ -537,16 +555,7 @@ const App: React.FC = () => {
             role: 'user',
             parts: [
               { inlineData: { mimeType: mimeType, data: base64Data } },
-              {
-                text: `Actúa como un Transcriptor Profesional Forense. Tu objetivo es crear una transcripción literal perfecta del audio adjunto.
-
-Reglas estrictas:
-1.  **Diarización:** Identifica el inicio de cada intervención con etiquetas (e.g., [Hablante 1]). IMPORTANTE: Insertar la etiqueta SOLAMENTE cuando cambie el interlocutor. NO repitas la etiqueta en párrafos consecutivos del mismo hablante.
-2.  **Verbatim:** Transcribe palabra por palabra exactamente lo que se dice. NO parafrasees, no resumas, no omitas nada.
-3.  **Formato:** Agrupa en párrafos lógicos y cortos (máx. 4 oraciones) para legibilidad, pero sin alterar el orden de las palabras.
-4.  **Puntuación:** Usa puntuación estándar para reflejar el ritmo y las pausas naturales del habla.
-5.  **Multilenguaje:** Si se detectan varios idiomas, transcribe cada uno en su idioma original.
-6.  **SALIDA:** Entrega SOLAMENTE el texto de la transcripción. NO incluyas introducciones, encabezados, ni notas finales. Empieza directamente con el primer hablante o la primera frase.` }
+              { text: transcriptionPrompt }
             ]
           }
         ]
@@ -725,6 +734,8 @@ Reglas estrictas:
         onSaveTemplates={handleSaveTemplates}
         fontScale={fontScale}
         onSaveFontScale={handleSaveFontScale}
+        transcriptionPrompt={transcriptionPrompt}
+        onSaveTranscriptionPrompt={handleSaveTranscriptionPrompt}
         t={t}
       />
 

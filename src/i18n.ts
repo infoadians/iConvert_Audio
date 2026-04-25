@@ -79,6 +79,11 @@ export const translations = {
     convert: 'Convert',
     processingAI: 'Processing with AI...',
     keepOriginal: 'Keep',
+    transcriptionPrompt: 'Transcription Prompt',
+    transcriptionPromptDesc: 'Instructions sent to the AI when transcribing audio.',
+    restoreDefault: 'Restore Default',
+    viewPrompt: 'View Prompt',
+    hidePrompt: 'Hide Prompt',
     infoModal: {
       title: 'About Transcribo',
       description: 'Transcribe audio to text with AI. Use smart templates to analyze the content of your transcriptions and of your documents securely.',
@@ -172,6 +177,11 @@ export const translations = {
     convert: 'Convertir',
     processingAI: 'Procesando con IA...',
     keepOriginal: 'Mantener',
+    transcriptionPrompt: 'Prompt de Transcripción',
+    transcriptionPromptDesc: 'Instrucciones enviadas a la IA al transcribir audio.',
+    restoreDefault: 'Restaurar por Defecto',
+    viewPrompt: 'Ver Prompt',
+    hidePrompt: 'Ocultar Prompt',
     infoModal: {
       title: 'Acerca de Transcribo',
       description: 'Transcribe audio a texto con IA. Utiliza plantillas inteligentes para analizar el contenido de tus transcripciones y de tus documentos de forma segura.',

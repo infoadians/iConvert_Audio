@@ -10,10 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages } from 'lucide-react';
+import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages, RotateCcw, Eye, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 import { APP_VERSION } from '../version';
+import { DEFAULT_TRANSCRIPTION_PROMPT } from '../data/prompts';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -30,13 +31,16 @@ interface SettingsModalProps {
     onSaveTemplates: (templates: ProcessTemplate[]) => void;
     fontScale: number;
     onSaveFontScale: (scale: number) => void;
+    transcriptionPrompt: string;
+    onSaveTranscriptionPrompt: (prompt: string) => void;
     t: any;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
     isOpen, onClose, lang, setLang, isDark, setIsDark,
     primaryHue, setPrimaryHue, apiKey, onSaveKey,
-    templates, onSaveTemplates, fontScale, onSaveFontScale, t
+    templates, onSaveTemplates, fontScale, onSaveFontScale,
+    transcriptionPrompt, onSaveTranscriptionPrompt, t
 }) => {
     const [localKey, setLocalKey] = useState(apiKey);
 
@@ -48,15 +52,27 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
     // Standard Template State
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+    const [revealedPrompts, setRevealedPrompts] = useState<string[]>([]);
 
     // Section Collapse State
     const [isCustomExpanded, setIsCustomExpanded] = useState(false);
     const [isStandardExpanded, setIsStandardExpanded] = useState(false);
+    const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+
+    // Transcription prompt local edit buffer
+    const [localPrompt, setLocalPrompt] = useState(transcriptionPrompt);
 
 
     useEffect(() => {
         setLocalKey(apiKey);
     }, [apiKey]);
+
+    useEffect(() => {
+        setLocalPrompt(transcriptionPrompt);
+    }, [transcriptionPrompt]);
+
+    const promptIsDirty = localPrompt !== transcriptionPrompt;
+    const promptIsCustom = transcriptionPrompt !== DEFAULT_TRANSCRIPTION_PROMPT;
 
     const handleSaveKey = () => {
         onSaveKey(localKey);
@@ -204,6 +220,58 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div className="border-t my-0.5" />
 
+                    {/* TRANSCRIPTION PROMPT */}
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2 cursor-pointer p-1 hover:bg-muted/30 rounded flex-1 min-w-0" onClick={() => setIsPromptExpanded(!isPromptExpanded)}>
+                                {isPromptExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                                <h4 className="text-sm font-bold leading-none text-foreground tracking-wide truncate">{t.transcriptionPrompt}</h4>
+                                {promptIsCustom && (
+                                    <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+                                        Custom
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        {isPromptExpanded && (
+                            <div className="space-y-2 pl-2">
+                                <p className="text-xs text-muted-foreground">{t.transcriptionPromptDesc}</p>
+                                <textarea
+                                    value={localPrompt}
+                                    onChange={(e) => setLocalPrompt(e.target.value)}
+                                    spellCheck={false}
+                                    className="flex min-h-[180px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs font-mono leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                />
+                                <div className="flex items-center gap-2">
+                                    <Button
+                                        size="sm"
+                                        onClick={() => onSaveTranscriptionPrompt(localPrompt)}
+                                        disabled={!promptIsDirty}
+                                        className={cn("h-8 text-xs", !promptIsDirty ? "opacity-50" : "")}
+                                    >
+                                        <Save className="mr-2 h-3 w-3" />
+                                        {promptIsDirty ? t.save : 'Saved'}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={() => {
+                                            setLocalPrompt(DEFAULT_TRANSCRIPTION_PROMPT);
+                                            onSaveTranscriptionPrompt(DEFAULT_TRANSCRIPTION_PROMPT);
+                                        }}
+                                        disabled={!promptIsCustom && !promptIsDirty}
+                                        className="h-8 text-xs"
+                                    >
+                                        <RotateCcw className="mr-2 h-3 w-3" />
+                                        {t.restoreDefault}
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="border-t my-0.5" />
+
                     {/* TEMPLATES SECTION */}
                     <div className="space-y-3">
 
@@ -230,12 +298,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                                             {expandedCategories.includes(category) && (
                                                 <div className="px-2 pb-1 space-y-1 animate-in slide-in-from-top-1 duration-200">
-                                                    {PROCESSING_TEMPLATES.filter(t => t.category === category).map(t => (
-                                                        <div key={t.id} className="text-xs p-1.5 rounded-md bg-background border">
-                                                            <div className="font-medium text-primary">{t.name}</div>
-                                                            <div className="text-[10px] text-muted-foreground mt-0.5 leading-tight">({t.objective})</div>
-                                                        </div>
-                                                    ))}
+                                                    {PROCESSING_TEMPLATES.filter(tpl => tpl.category === category).map(tpl => {
+                                                        const isRevealed = revealedPrompts.includes(tpl.id);
+                                                        return (
+                                                            <div key={tpl.id} className="text-xs p-1.5 rounded-md bg-background border">
+                                                                <div className="flex items-start justify-between gap-2">
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <div className="font-medium text-primary">{tpl.name}</div>
+                                                                        <div className="text-[10px] text-muted-foreground mt-0.5 leading-tight">({tpl.objective})</div>
+                                                                    </div>
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-6 w-6 flex-shrink-0"
+                                                                        onClick={() => setRevealedPrompts(prev => isRevealed ? prev.filter(id => id !== tpl.id) : [...prev, tpl.id])}
+                                                                        title={isRevealed ? t.hidePrompt : t.viewPrompt}
+                                                                    >
+                                                                        {isRevealed ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+                                                                    </Button>
+                                                                </div>
+                                                                {isRevealed && (
+                                                                    <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/40 p-2 text-[10px] font-mono leading-relaxed">
+                                                                        {tpl.prompt}
+                                                                    </pre>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </Card>
