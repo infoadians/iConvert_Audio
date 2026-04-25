@@ -64,60 +64,98 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
         setTimeout(() => setCopied(false), 2000);
     };
 
-    const handleDownload = (format: 'txt' | 'md' | 'pdf' = 'txt') => {
+    const handleDownload = async (format: 'txt' | 'md' | 'pdf' = 'txt') => {
         if (format === 'pdf') {
             // Render the rendered Markdown DOM to PDF so headings/bold/lists
             // appear formatted instead of raw "##" / "**" syntax.
             const baseName = fileName.split('.')[0];
+
+            // Use pixels (180mm @ 96dpi ≈ 680px). html2canvas is unreliable
+            // with mm widths and with "fixed; left: -10000px" — use absolute
+            // positioning at the page origin with visibility:hidden so the
+            // element is laid out normally but invisible to the user.
             const wrapper = document.createElement('div');
-            wrapper.style.cssText = 'padding:24px;font-family:Inter,sans-serif;color:#0f172a;background:#ffffff;line-height:1.5;font-size:12pt;width:180mm;';
+            wrapper.style.cssText = [
+                'position:absolute',
+                'left:0',
+                'top:0',
+                'visibility:hidden',
+                'pointer-events:none',
+                'width:680px',
+                'padding:24px',
+                'font-family:Inter,Helvetica,Arial,sans-serif',
+                'color:#0f172a',
+                'background:#ffffff',
+                'line-height:1.5',
+                'font-size:14px',
+                'box-sizing:border-box',
+            ].join(';');
+
             const title = document.createElement('h1');
             title.textContent = fileName;
-            title.style.cssText = 'font-size:18pt;font-weight:700;margin:0 0 16px 0;border-bottom:1px solid #cbd5e1;padding-bottom:8px;';
+            title.style.cssText = 'font-size:22px;font-weight:700;margin:0 0 16px 0;border-bottom:1px solid #cbd5e1;padding-bottom:8px;color:#0f172a;';
             wrapper.appendChild(title);
 
             const body = document.createElement('div');
-            if (pdfContentRef.current) {
+            body.className = 'pdf-md';
+            if (pdfContentRef.current && pdfContentRef.current.innerHTML.trim()) {
                 body.innerHTML = pdfContentRef.current.innerHTML;
             } else {
-                body.textContent = content;
+                // Fallback: render the raw content as preformatted text so the
+                // PDF is never blank if the live DOM ref isn't populated yet.
+                const pre = document.createElement('pre');
+                pre.style.cssText = 'white-space:pre-wrap;font-family:inherit;margin:0;';
+                pre.textContent = content;
+                body.appendChild(pre);
             }
-            // Inline minimal markdown styling so html2canvas picks it up.
+
             const style = document.createElement('style');
             style.textContent = `
-                .pdf-md h1 { font-size: 16pt; font-weight: 700; margin: 14px 0 8px; }
-                .pdf-md h2 { font-size: 14pt; font-weight: 700; margin: 12px 0 6px; }
-                .pdf-md h3 { font-size: 12pt; font-weight: 700; margin: 10px 0 4px; }
-                .pdf-md p  { margin: 0 0 8px 0; }
+                .pdf-md h1 { font-size: 20px; font-weight: 700; margin: 16px 0 8px; color: #0f172a; }
+                .pdf-md h2 { font-size: 17px; font-weight: 700; margin: 14px 0 6px; color: #0f172a; }
+                .pdf-md h3 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; color: #0f172a; }
+                .pdf-md p  { margin: 0 0 10px 0; }
                 .pdf-md strong { font-weight: 700; }
                 .pdf-md em { font-style: italic; }
-                .pdf-md ul, .pdf-md ol { margin: 0 0 8px 20px; padding: 0; }
+                .pdf-md ul, .pdf-md ol { margin: 0 0 10px 24px; padding: 0; }
                 .pdf-md li { margin: 0 0 4px 0; }
-                .pdf-md code { font-family: monospace; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; }
-                .pdf-md blockquote { margin: 0 0 8px 0; padding: 4px 12px; border-left: 3px solid #cbd5e1; color: #475569; }
+                .pdf-md code { font-family: ui-monospace, monospace; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
+                .pdf-md blockquote { margin: 0 0 10px 0; padding: 4px 12px; border-left: 3px solid #cbd5e1; color: #475569; }
+                .pdf-md a { color: #2563eb; text-decoration: underline; }
+                .pdf-md hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
             `;
             wrapper.appendChild(style);
-            body.className = 'pdf-md';
             wrapper.appendChild(body);
-
-            // Offscreen so it renders at the desired width without affecting the modal.
-            wrapper.style.position = 'fixed';
-            wrapper.style.left = '-10000px';
-            wrapper.style.top = '0';
             document.body.appendChild(wrapper);
 
-            const opt = {
-                margin: [10, 15, 10, 15] as [number, number, number, number],
-                filename: `${baseName}_transcript.pdf`,
-                image: { type: 'jpeg' as const, quality: 0.95 },
-                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
-                jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const },
-                pagebreak: { mode: ['css', 'legacy'] }
-            };
+            try {
+                // Wait for fonts and a layout flush so html2canvas captures
+                // the fully laid-out element.
+                if ((document as any).fonts?.ready) {
+                    try { await (document as any).fonts.ready; } catch { /* noop */ }
+                }
+                await new Promise<void>(r => requestAnimationFrame(() => r()));
 
-            html2pdf().set(opt).from(wrapper).save().finally(() => {
-                document.body.removeChild(wrapper);
-            });
+                const opt = {
+                    margin: [10, 15, 10, 15] as [number, number, number, number],
+                    filename: `${baseName}_transcript.pdf`,
+                    image: { type: 'jpeg' as const, quality: 0.95 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        windowWidth: wrapper.scrollWidth,
+                    },
+                    jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const },
+                    pagebreak: { mode: ['css', 'legacy'] }
+                };
+
+                await html2pdf().set(opt).from(wrapper).save();
+            } catch (err) {
+                console.error('PDF export failed:', err);
+            } finally {
+                if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
+            }
             return;
         }
 

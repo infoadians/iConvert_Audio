@@ -900,7 +900,7 @@ Reglas estrictas:
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V0.3.9</p>
+        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V0.3.10</p>
       </footer>
     </div>
   );
