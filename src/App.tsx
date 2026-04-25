@@ -768,120 +768,126 @@ Reglas estrictas:
               <DropZone onFilesAdded={onFilesAdded} compact={hasFiles} t={t} />
             </section>
 
-            {/* Content Lists */}
-            {hasFiles && (
-              <div className="grid gap-8">
-                {/* Queue */}
-                {files.some(f => f.transcriptionStatus !== 'done') && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        {t.queue || 'Queue'}
-                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                          {files.filter(f => f.transcriptionStatus !== 'done').length}
-                        </span>
-                      </h3>
-                      <Button variant="ghost" size="sm" onClick={() => toggleSection('queue')} className="h-8 w-8 p-0">
-                        {expandedSections.queue ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {expandedSections.queue && (
-                      <FileList
-                        files={files.filter(f => f.transcriptionStatus !== 'done')}
-                        onRemove={removeFile}
-                        onConvert={startConversion}
-                        onTranscribe={transcribeFile}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="queue"
-                      />
-                    )}
-                  </div>
-                )}
-
-                {/* Transcribed */}
-                {files.some(f => f.transcriptionStatus === 'done') && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        {t.transcribedAudios}
-                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                          {files.filter(f => f.transcriptionStatus === 'done').length}
-                        </span>
-                      </h3>
-                      <Button variant="ghost" size="sm" onClick={() => toggleSection('transcribed')} className="h-8 w-8 p-0">
-                        {expandedSections.transcribed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {expandedSections.transcribed && (
-                      <FileList
-                        files={files.filter(f => f.transcriptionStatus === 'done')}
-                        onRemove={removeFile}
-                        onViewTranscript={handleViewTranscript}
-                        onDownloadTranscript={downloadTranscript}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="transcribed"
-                      />
-                    )}
-                  </div>
-                )}
-
-                {/* Documents Section */}
-                {documents.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        {t.documents}
-                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                          {documents.length}
-                        </span>
-                      </h3>
-                      <Button variant="ghost" size="sm" onClick={() => toggleSection('documents')} className="h-8 w-8 p-0">
-                        {expandedSections.documents ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {expandedSections.documents && (
-                      <FileList
-                        documents={documents}
-                        onRemove={(id) => removeFile(id, 'document')}
-                        onViewTranscript={handleViewDocument}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="documents"
-                      />
-                    )}
-                  </div>
-                )}
-
-                {/* Processed Results */}
-                {processedResults.length > 0 && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
-                        {t.processedResults}
-                        <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                          {processedResults.length}
-                        </span>
-                      </h3>
-                      <Button variant="ghost" size="sm" onClick={() => toggleSection('processed')} className="h-8 w-8 p-0">
-                        {expandedSections.processed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-                      </Button>
-                    </div>
-                    {expandedSections.processed && (
-                      <FileList
-                        processedResults={processedResults}
-                        onRemove={removeFile}
-                        onViewProcessed={handleViewProcessed}
-                        hasApiKey={!!apiKey}
-                        t={t}
-                        type="processed"
-                      />
-                    )}
-                  </div>
+            {/* Content Lists - always render headers so all sections are reachable (PWA iPad fix) */}
+            <div className="grid gap-8">
+              {/* Queue */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                    {t.queue || 'Queue'}
+                    <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                      {files.filter(f => f.transcriptionStatus !== 'done').length}
+                    </span>
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => toggleSection('queue')} className="h-8 w-8 p-0">
+                    {expandedSections.queue ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {expandedSections.queue && (
+                  files.some(f => f.transcriptionStatus !== 'done') ? (
+                    <FileList
+                      files={files.filter(f => f.transcriptionStatus !== 'done')}
+                      onRemove={removeFile}
+                      onConvert={startConversion}
+                      onTranscribe={transcribeFile}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="queue"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic px-1">No items.</p>
+                  )
                 )}
               </div>
-            )}
+
+              {/* Transcribed */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                    {t.transcribedAudios}
+                    <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                      {files.filter(f => f.transcriptionStatus === 'done').length}
+                    </span>
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => toggleSection('transcribed')} className="h-8 w-8 p-0">
+                    {expandedSections.transcribed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {expandedSections.transcribed && (
+                  files.some(f => f.transcriptionStatus === 'done') ? (
+                    <FileList
+                      files={files.filter(f => f.transcriptionStatus === 'done')}
+                      onRemove={removeFile}
+                      onViewTranscript={handleViewTranscript}
+                      onDownloadTranscript={downloadTranscript}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="transcribed"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic px-1">No items.</p>
+                  )
+                )}
+              </div>
+
+              {/* Documents Section */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                    {t.documents}
+                    <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                      {documents.length}
+                    </span>
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => toggleSection('documents')} className="h-8 w-8 p-0">
+                    {expandedSections.documents ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {expandedSections.documents && (
+                  documents.length > 0 ? (
+                    <FileList
+                      documents={documents}
+                      onRemove={(id) => removeFile(id, 'document')}
+                      onViewTranscript={handleViewDocument}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="documents"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic px-1">No items.</p>
+                  )
+                )}
+              </div>
+
+              {/* Processed Results */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold tracking-tight flex items-center gap-2">
+                    {t.processedResults}
+                    <span className="inline-flex items-center justify-center rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                      {processedResults.length}
+                    </span>
+                  </h3>
+                  <Button variant="ghost" size="sm" onClick={() => toggleSection('processed')} className="h-8 w-8 p-0">
+                    {expandedSections.processed ? <Minus className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                  </Button>
+                </div>
+                {expandedSections.processed && (
+                  processedResults.length > 0 ? (
+                    <FileList
+                      processedResults={processedResults}
+                      onRemove={removeFile}
+                      onViewProcessed={handleViewProcessed}
+                      hasApiKey={!!apiKey}
+                      t={t}
+                      type="processed"
+                    />
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic px-1">No items.</p>
+                  )
+                )}
+              </div>
+            </div>
 
 
 
