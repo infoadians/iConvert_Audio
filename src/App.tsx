@@ -530,7 +530,7 @@ const App: React.FC = () => {
       const ai = new GoogleGenAI({ apiKey });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash',
+        model: 'gemini-flash-latest',
         contents: [
           {
             role: 'user',
@@ -573,7 +573,7 @@ Reglas estrictas:
     try {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash',
+        model: 'gemini-flash-latest',
         contents: [
           {
             role: 'user',
