@@ -14,7 +14,9 @@ import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languag
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 import { APP_VERSION } from '../version';
-import { DEFAULT_TRANSCRIPTION_PROMPT } from '../data/prompts';
+import { DEFAULT_TRANSCRIPTION_PROMPT, AVAILABLE_MODELS } from '../data/prompts';
+
+type ApiKeyTier = 'free' | 'paid';
 
 interface SettingsModalProps {
     isOpen: boolean;
@@ -25,8 +27,13 @@ interface SettingsModalProps {
     setIsDark: (isDark: boolean) => void;
     primaryHue: number;
     setPrimaryHue: (hue: number) => void;
-    apiKey: string;
-    onSaveKey: (key: string) => void;
+    apiKeyFree: string;
+    apiKeyPaid: string;
+    activeApiKey: ApiKeyTier;
+    onSaveKey: (tier: ApiKeyTier, key: string) => void;
+    onSetActiveApiKey: (tier: ApiKeyTier) => void;
+    selectedModel: string;
+    onSetModel: (model: string) => void;
     templates: ProcessTemplate[];
     onSaveTemplates: (templates: ProcessTemplate[]) => void;
     fontScale: number;
@@ -39,11 +46,18 @@ interface SettingsModalProps {
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
     isOpen, onClose, lang, setLang, isDark, setIsDark,
-    primaryHue, setPrimaryHue, apiKey, onSaveKey,
+    primaryHue, setPrimaryHue,
+    apiKeyFree, apiKeyPaid, activeApiKey, onSaveKey, onSetActiveApiKey,
+    selectedModel, onSetModel,
     templates, onSaveTemplates, fontScale, onSaveFontScale,
     transcriptionPrompt, onSaveTranscriptionPrompt, onGeneratePrompt, t
 }) => {
-    const [localKey, setLocalKey] = useState(apiKey);
+    const [localKeyFree, setLocalKeyFree] = useState(apiKeyFree);
+    const [localKeyPaid, setLocalKeyPaid] = useState(apiKeyPaid);
+
+    const apiKey = activeApiKey === 'free' ? apiKeyFree : apiKeyPaid;
+    const isModelCustom = !AVAILABLE_MODELS.some(m => m.id === selectedModel);
+    const [customModelInput, setCustomModelInput] = useState(isModelCustom ? selectedModel : '');
 
     // Custom Template State
     const [isAddTemplateOpen, setIsAddTemplateOpen] = useState(false);
@@ -102,21 +116,28 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
 
     useEffect(() => {
-        setLocalKey(apiKey);
-    }, [apiKey]);
+        setLocalKeyFree(apiKeyFree);
+    }, [apiKeyFree]);
+
+    useEffect(() => {
+        setLocalKeyPaid(apiKeyPaid);
+    }, [apiKeyPaid]);
 
     useEffect(() => {
         setLocalPrompt(transcriptionPrompt);
     }, [transcriptionPrompt]);
 
+    useEffect(() => {
+        if (!AVAILABLE_MODELS.some(m => m.id === selectedModel)) {
+            setCustomModelInput(selectedModel);
+        }
+    }, [selectedModel]);
+
     const promptIsDirty = localPrompt !== transcriptionPrompt;
     const promptIsCustom = transcriptionPrompt !== DEFAULT_TRANSCRIPTION_PROMPT;
 
-    const handleSaveKey = () => {
-        onSaveKey(localKey);
-    };
-
-    const isKeyUnchanged = localKey === apiKey;
+    const freeIsUnchanged = localKeyFree === apiKeyFree;
+    const paidIsUnchanged = localKeyPaid === apiKeyPaid;
 
     const handleAddTemplate = () => {
         if (!newName.trim() || !newPrompt.trim()) return;
@@ -232,27 +253,135 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                     <div className="border-t my-0.5" />
 
-                    {/* AI Section */}
-                    <div className="space-y-1">
-                        <h4 className="text-sm font-medium leading-none text-muted-foreground mb-2">{t.apiKeyTitle}</h4>
-                        <div className="flex gap-2 items-end">
-                            <div className="grid w-full gap-1">
+                    {/* AI Section — Free / Paid keys with active toggle */}
+                    <div className="space-y-2">
+                        <h4 className="text-sm font-medium leading-none text-muted-foreground">{t.apiKeyTitle}</h4>
+
+                        {/* Active key toggle */}
+                        <div className="flex items-center justify-between rounded-md border bg-muted/20 px-2 py-1.5">
+                            <Label className="text-xs">{t.activeKey}</Label>
+                            <div className="flex items-center gap-1 rounded-md bg-background border p-0.5">
+                                <button
+                                    type="button"
+                                    onClick={() => onSetActiveApiKey('free')}
+                                    className={cn(
+                                        "px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded",
+                                        activeApiKey === 'free'
+                                            ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                >
+                                    {t.freeKey}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => onSetActiveApiKey('paid')}
+                                    className={cn(
+                                        "px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider rounded",
+                                        activeApiKey === 'paid'
+                                            ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
+                                            : "text-muted-foreground hover:text-foreground"
+                                    )}
+                                >
+                                    {t.paidKey}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Free key */}
+                        <div className="space-y-1">
+                            <Label className="text-xs">{t.apiKeyFreeLabel}</Label>
+                            <div className="flex gap-2 items-end">
                                 <Input
                                     type="password"
-                                    value={localKey}
-                                    onChange={(e) => setLocalKey(e.target.value)}
+                                    value={localKeyFree}
+                                    onChange={(e) => setLocalKeyFree(e.target.value)}
                                     placeholder={t.apiKeyPlaceholder}
                                     className="h-8 text-xs"
                                 />
+                                <Button
+                                    onClick={() => onSaveKey('free', localKeyFree)}
+                                    size="sm"
+                                    disabled={freeIsUnchanged}
+                                    className={cn("h-8 text-xs", freeIsUnchanged ? "opacity-50" : "")}
+                                >
+                                    {freeIsUnchanged ? 'Saved' : t.saveKey}
+                                </Button>
                             </div>
-                            <Button
-                                onClick={handleSaveKey}
-                                size="sm"
-                                disabled={isKeyUnchanged}
-                                className={cn("h-8 text-xs", isKeyUnchanged ? "opacity-50" : "")}
+                        </div>
+
+                        {/* Paid key */}
+                        <div className="space-y-1">
+                            <Label className="text-xs">{t.apiKeyPaidLabel}</Label>
+                            <div className="flex gap-2 items-end">
+                                <Input
+                                    type="password"
+                                    value={localKeyPaid}
+                                    onChange={(e) => setLocalKeyPaid(e.target.value)}
+                                    placeholder={t.apiKeyPlaceholder}
+                                    className="h-8 text-xs"
+                                />
+                                <Button
+                                    onClick={() => onSaveKey('paid', localKeyPaid)}
+                                    size="sm"
+                                    disabled={paidIsUnchanged}
+                                    className={cn("h-8 text-xs", paidIsUnchanged ? "opacity-50" : "")}
+                                >
+                                    {paidIsUnchanged ? 'Saved' : t.saveKey}
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Model selector */}
+                        <div className="space-y-1 pt-1">
+                            <Label className="text-xs">{t.aiModel}</Label>
+                            <p className="text-[11px] text-muted-foreground">{t.aiModelDesc}</p>
+                            <Select
+                                value={isModelCustom ? '__custom__' : selectedModel}
+                                onValueChange={(val) => {
+                                    if (val === '__custom__') {
+                                        // Stay on whatever custom value the user has typed (or empty).
+                                        if (customModelInput.trim()) onSetModel(customModelInput.trim());
+                                    } else {
+                                        onSetModel(val);
+                                    }
+                                }}
                             >
-                                {isKeyUnchanged ? 'Saved' : t.saveKey}
-                            </Button>
+                                <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {AVAILABLE_MODELS.map(m => (
+                                        <SelectItem key={m.id} value={m.id} className="text-xs">
+                                            <span className="flex items-center gap-2">
+                                                <span>{m.label}</span>
+                                                <span className="text-[10px] font-mono text-muted-foreground">{m.id}</span>
+                                            </span>
+                                        </SelectItem>
+                                    ))}
+                                    <SelectItem value="__custom__" className="text-xs">
+                                        {t.customModel}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {isModelCustom && (
+                                <div className="flex gap-2 items-end pt-1">
+                                    <Input
+                                        value={customModelInput}
+                                        onChange={(e) => setCustomModelInput(e.target.value)}
+                                        placeholder={t.customModelPlaceholder}
+                                        className="h-8 text-xs font-mono"
+                                    />
+                                    <Button
+                                        onClick={() => onSetModel(customModelInput.trim())}
+                                        size="sm"
+                                        disabled={!customModelInput.trim() || customModelInput.trim() === selectedModel}
+                                        className="h-8 text-xs"
+                                    >
+                                        {t.save}
+                                    </Button>
+                                </div>
+                            )}
                         </div>
                     </div>
 

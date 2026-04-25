@@ -20,10 +20,11 @@ interface HeaderProps {
   t: any;
   onOpenSettings: () => void;
   hasApiKey: boolean;
+  activeApiKey: 'free' | 'paid';
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  t, onOpenSettings, lang
+  t, onOpenSettings, lang, hasApiKey, activeApiKey
 }) => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -90,6 +91,18 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {hasApiKey && (
+            <span
+              className={
+                activeApiKey === 'paid'
+                  ? "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
+                  : "px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30"
+              }
+              title={activeApiKey === 'paid' ? (t.paidKey || 'Paid API') : (t.freeKey || 'Free API')}
+            >
+              {activeApiKey === 'paid' ? (t.paidKey || 'Paid') : (t.freeKey || 'Free')}
+            </span>
+          )}
           <Button
             variant="ghost"
             size="icon"

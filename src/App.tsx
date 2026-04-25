@@ -10,7 +10,9 @@ import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult, Documen
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { APP_VERSION } from './version';
-import { DEFAULT_TRANSCRIPTION_PROMPT } from './data/prompts';
+import { DEFAULT_TRANSCRIPTION_PROMPT, DEFAULT_MODEL } from './data/prompts';
+
+type ApiKeyTier = 'free' | 'paid';
 import { GoogleGenAI } from "@google/genai";
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -49,9 +51,14 @@ const App: React.FC = () => {
   // Theme Color
   const [primaryHue, setPrimaryHue] = useState(249); // Default Indigo
 
-  // API Key & Settings Modal State
-  const [apiKey, setApiKey] = useState('');
+  // API Keys & Model — two slots (Free / Paid) with an active toggle.
+  const [apiKeyFree, setApiKeyFree] = useState('');
+  const [apiKeyPaid, setApiKeyPaid] = useState('');
+  const [activeApiKey, setActiveApiKey] = useState<ApiKeyTier>('free');
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  const apiKey = activeApiKey === 'free' ? apiKeyFree : apiKeyPaid;
 
   // Process Templates
   const [templates, setTemplates] = useState<ProcessTemplate[]>([]);
@@ -153,8 +160,25 @@ const App: React.FC = () => {
   }, [fontScale]);
 
   useEffect(() => {
-    const storedKey = localStorage.getItem('iconvert_gemini_key');
-    if (storedKey) setApiKey(storedKey);
+    // Migrate single-key storage → free slot.
+    const legacyKey = localStorage.getItem('iconvert_gemini_key');
+    const storedFree = localStorage.getItem('iconvert_gemini_key_free');
+    const storedPaid = localStorage.getItem('iconvert_gemini_key_paid');
+    if (storedFree) setApiKeyFree(storedFree);
+    else if (legacyKey) {
+      setApiKeyFree(legacyKey);
+      localStorage.setItem('iconvert_gemini_key_free', legacyKey);
+      localStorage.removeItem('iconvert_gemini_key');
+    }
+    if (storedPaid) setApiKeyPaid(storedPaid);
+
+    const storedActive = localStorage.getItem('iconvert_active_api_key');
+    if (storedActive === 'paid' || storedActive === 'free') {
+      setActiveApiKey(storedActive);
+    }
+
+    const storedModel = localStorage.getItem('iconvert_model');
+    if (storedModel) setSelectedModel(storedModel);
 
     const storedTemplates = localStorage.getItem('iconvert_templates');
     if (storedTemplates) {
@@ -280,14 +304,29 @@ const App: React.FC = () => {
     return () => clearTimeout(safetyTimeout);
   }, []);
 
-  const handleSaveKey = (key: string) => {
-    setApiKey(key);
+  const handleSaveKey = (tier: ApiKeyTier, key: string) => {
+    const storageKey = tier === 'free' ? 'iconvert_gemini_key_free' : 'iconvert_gemini_key_paid';
+    if (tier === 'free') setApiKeyFree(key); else setApiKeyPaid(key);
     if (key) {
-      localStorage.setItem('iconvert_gemini_key', key);
-      toast.success("API Key saved");
+      localStorage.setItem(storageKey, key);
+      toast.success(`${tier === 'free' ? 'Free' : 'Paid'} API Key saved`);
     } else {
-      localStorage.removeItem('iconvert_gemini_key');
-      toast.info("API Key removed");
+      localStorage.removeItem(storageKey);
+      toast.info(`${tier === 'free' ? 'Free' : 'Paid'} API Key removed`);
+    }
+  };
+
+  const handleSetActiveApiKey = (tier: ApiKeyTier) => {
+    setActiveApiKey(tier);
+    localStorage.setItem('iconvert_active_api_key', tier);
+  };
+
+  const handleSetModel = (model: string) => {
+    setSelectedModel(model);
+    if (model && model !== DEFAULT_MODEL) {
+      localStorage.setItem('iconvert_model', model);
+    } else {
+      localStorage.removeItem('iconvert_model');
     }
   };
 
@@ -331,7 +370,7 @@ User's idea (in their own words):
 ${idea.trim()}
 """`;
     const response = await ai.models.generateContent({
-      model: 'gemini-flash-latest',
+      model: selectedModel,
       contents: [{ role: 'user', parts: [{ text: meta }] }]
     });
     return (response.text || '').trim();
@@ -574,7 +613,7 @@ ${idea.trim()}
       const ai = new GoogleGenAI({ apiKey });
 
       const response = await ai.models.generateContent({
-        model: 'gemini-flash-latest',
+        model: selectedModel,
         contents: [
           {
             role: 'user',
@@ -609,7 +648,7 @@ ${idea.trim()}
     try {
       const ai = new GoogleGenAI({ apiKey });
       const response = await ai.models.generateContent({
-        model: 'gemini-flash-latest',
+        model: selectedModel,
         contents: [
           {
             role: 'user',
@@ -738,6 +777,7 @@ ${idea.trim()}
         t={t}
         onOpenSettings={() => setIsSettingsOpen(true)}
         hasApiKey={!!apiKey}
+        activeApiKey={activeApiKey}
         lang={lang}
         setLang={setLang}
         isDark={isDark}
@@ -753,8 +793,13 @@ ${idea.trim()}
         setIsDark={setIsDark}
         primaryHue={primaryHue}
         setPrimaryHue={setPrimaryHue}
-        apiKey={apiKey}
+        apiKeyFree={apiKeyFree}
+        apiKeyPaid={apiKeyPaid}
+        activeApiKey={activeApiKey}
         onSaveKey={handleSaveKey}
+        onSetActiveApiKey={handleSetActiveApiKey}
+        selectedModel={selectedModel}
+        onSetModel={handleSetModel}
         templates={templates}
         onSaveTemplates={handleSaveTemplates}
         fontScale={fontScale}

@@ -10,3 +10,17 @@ Reglas estrictas:
 4.  **Puntuación:** Usa puntuación estándar para reflejar el ritmo y las pausas naturales del habla.
 5.  **Multilenguaje:** Si se detectan varios idiomas, transcribe cada uno en su idioma original.
 6.  **SALIDA:** Entrega SOLAMENTE el texto de la transcripción. NO incluyas introducciones, encabezados, ni notas finales. Empieza directamente con el primer hablante o la primera frase.`;
+
+// Models offered in the Settings → Model selector. Aliases (*-latest)
+// auto-track Google's newest stable release; specific versions are
+// pinned. "custom" lets the user type any model id (e.g. gemini-3.1-pro).
+export type ModelOption = { id: string; label: string };
+export const AVAILABLE_MODELS: ModelOption[] = [
+    { id: 'gemini-flash-latest', label: 'Flash (Latest)' },
+    { id: 'gemini-pro-latest', label: 'Pro (Latest)' },
+    { id: 'gemini-2.5-flash', label: 'Flash 2.5' },
+    { id: 'gemini-2.5-pro', label: 'Pro 2.5' },
+    { id: 'gemini-3-pro-preview', label: 'Pro 3 (Preview)' },
+];
+export const DEFAULT_MODEL = 'gemini-flash-latest';
+
