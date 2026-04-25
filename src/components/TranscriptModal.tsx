@@ -1,7 +1,6 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-// @ts-ignore - html2pdf.js types are minimal
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from 'jspdf';
 import { ProcessTemplate } from '../types';
 import { PROCESSING_TEMPLATES, TemplateCategory } from '../data/templates';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -10,6 +9,148 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ZoomIn, ZoomOut, X, FileText, Download, Copy, Play, ChevronRight, ChevronDown, Loader2, Send, Cpu, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
+
+// --- Markdown -> jsPDF renderer -----------------------------------------
+// Direct text rendering (no html2canvas) so output is reliable on iPad
+// Safari and produces a smaller vector PDF. Supports: # / ## / ### headings,
+// **bold** / *italic* inline runs, "- "/"* " bullets, "1. " ordered lists,
+// blank lines as paragraph separators.
+
+type Run = { text: string; bold: boolean; italic: boolean };
+
+const tokenizeInline = (text: string): Run[] => {
+    const runs: Run[] = [];
+    const re = /\*\*([^*]+)\*\*|\*([^*\s][^*]*?)\*|([^*]+|\*)/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+        if (m[1] !== undefined) runs.push({ text: m[1], bold: true, italic: false });
+        else if (m[2] !== undefined) runs.push({ text: m[2], bold: false, italic: true });
+        else if (m[3] !== undefined) runs.push({ text: m[3], bold: false, italic: false });
+    }
+    return runs.length ? runs : [{ text, bold: false, italic: false }];
+};
+
+const renderMarkdownToPdf = (fileName: string, content: string): jsPDF => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const maxW = pageW - margin * 2;
+
+    let y = margin;
+
+    const ensureSpace = (needed: number) => {
+        if (y + needed > pageH - margin) {
+            doc.addPage();
+            y = margin;
+        }
+    };
+
+    const setFont = (size: number, bold: boolean, italic: boolean) => {
+        const style = bold && italic ? 'bolditalic' : bold ? 'bold' : italic ? 'italic' : 'normal';
+        doc.setFont('helvetica', style);
+        doc.setFontSize(size);
+    };
+
+    // Render a sequence of inline runs with word-wrap inside [x0, x0+width].
+    const renderRuns = (runs: Run[], size: number, x0: number, width: number, lineGap: number) => {
+        let x = x0;
+        let lineStarted = false;
+        const newLine = () => {
+            y += lineGap;
+            x = x0;
+            lineStarted = false;
+            ensureSpace(lineGap);
+        };
+        ensureSpace(lineGap);
+        for (const run of runs) {
+            setFont(size, run.bold, run.italic);
+            // Split into words while preserving spaces.
+            const parts = run.text.split(/(\s+)/);
+            for (const part of parts) {
+                if (!part) continue;
+                const isSpace = /^\s+$/.test(part);
+                const w = doc.getTextWidth(part);
+                if (!isSpace && lineStarted && x + w > x0 + width) {
+                    newLine();
+                    setFont(size, run.bold, run.italic);
+                }
+                if (isSpace && !lineStarted) continue; // skip leading spaces on a wrapped line
+                doc.text(part, x, y);
+                x += w;
+                lineStarted = true;
+            }
+        }
+        y += lineGap; // end of block line
+    };
+
+    // Title
+    setFont(16, true, false);
+    const titleLines = doc.splitTextToSize(fileName, maxW);
+    titleLines.forEach((line: string) => {
+        ensureSpace(7);
+        doc.text(line, margin, y);
+        y += 7;
+    });
+    doc.setDrawColor(203, 213, 225);
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
+
+    // Body, line by line
+    const lines = content.replace(/\r\n/g, '\n').split('\n');
+    let prevBlank = false;
+    for (let raw of lines) {
+        const line = raw.replace(/\t/g, '    ');
+        if (line.trim() === '') {
+            if (!prevBlank) y += 3; // paragraph spacing
+            prevBlank = true;
+            continue;
+        }
+        prevBlank = false;
+
+        // Headings
+        let m = /^(#{1,3})\s+(.*)$/.exec(line);
+        if (m) {
+            const level = m[1].length;
+            const size = level === 1 ? 14 : level === 2 ? 12 : 11;
+            const lineGap = level === 1 ? 7 : level === 2 ? 6.5 : 6;
+            y += 1;
+            renderRuns([{ text: m[2], bold: true, italic: false }], size, margin, maxW, lineGap);
+            continue;
+        }
+
+        // Bulleted list
+        m = /^(\s*)[-*]\s+(.*)$/.exec(line);
+        if (m) {
+            const indent = Math.min(m[1].length, 8);
+            const x0 = margin + 4 + indent;
+            setFont(11, false, false);
+            ensureSpace(5.5);
+            doc.text('•', margin + indent, y);
+            renderRuns(tokenizeInline(m[2]), 11, x0, maxW - (x0 - margin), 5.5);
+            continue;
+        }
+
+        // Numbered list
+        m = /^(\s*)(\d+)\.\s+(.*)$/.exec(line);
+        if (m) {
+            const indent = Math.min(m[1].length, 8);
+            const marker = `${m[2]}.`;
+            setFont(11, false, false);
+            const markerW = doc.getTextWidth(marker + ' ');
+            const x0 = margin + indent + markerW;
+            ensureSpace(5.5);
+            doc.text(marker, margin + indent, y);
+            renderRuns(tokenizeInline(m[3]), 11, x0, maxW - (x0 - margin), 5.5);
+            continue;
+        }
+
+        // Plain paragraph
+        renderRuns(tokenizeInline(line), 11, margin, maxW, 5.5);
+    }
+
+    return doc;
+};
 
 interface TranscriptModalProps {
     isOpen: boolean;
@@ -66,96 +207,10 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
 
     const handleDownload = async (format: 'txt' | 'md' | 'pdf' = 'txt') => {
         if (format === 'pdf') {
-            // Render the rendered Markdown DOM to PDF so headings/bold/lists
-            // appear formatted instead of raw "##" / "**" syntax.
+            // Render markdown directly into jsPDF as styled vector text.
+            // Avoids html2canvas, which produces blank pages on iPad Safari.
             const baseName = fileName.split('.')[0];
-
-            // Use pixels (180mm @ 96dpi ≈ 680px). html2canvas is unreliable
-            // with mm widths and with "fixed; left: -10000px" — use absolute
-            // positioning at the page origin with visibility:hidden so the
-            // element is laid out normally but invisible to the user.
-            const wrapper = document.createElement('div');
-            wrapper.style.cssText = [
-                'position:absolute',
-                'left:0',
-                'top:0',
-                'visibility:hidden',
-                'pointer-events:none',
-                'width:680px',
-                'padding:24px',
-                'font-family:Inter,Helvetica,Arial,sans-serif',
-                'color:#0f172a',
-                'background:#ffffff',
-                'line-height:1.5',
-                'font-size:14px',
-                'box-sizing:border-box',
-            ].join(';');
-
-            const title = document.createElement('h1');
-            title.textContent = fileName;
-            title.style.cssText = 'font-size:22px;font-weight:700;margin:0 0 16px 0;border-bottom:1px solid #cbd5e1;padding-bottom:8px;color:#0f172a;';
-            wrapper.appendChild(title);
-
-            const body = document.createElement('div');
-            body.className = 'pdf-md';
-            if (pdfContentRef.current && pdfContentRef.current.innerHTML.trim()) {
-                body.innerHTML = pdfContentRef.current.innerHTML;
-            } else {
-                // Fallback: render the raw content as preformatted text so the
-                // PDF is never blank if the live DOM ref isn't populated yet.
-                const pre = document.createElement('pre');
-                pre.style.cssText = 'white-space:pre-wrap;font-family:inherit;margin:0;';
-                pre.textContent = content;
-                body.appendChild(pre);
-            }
-
-            const style = document.createElement('style');
-            style.textContent = `
-                .pdf-md h1 { font-size: 20px; font-weight: 700; margin: 16px 0 8px; color: #0f172a; }
-                .pdf-md h2 { font-size: 17px; font-weight: 700; margin: 14px 0 6px; color: #0f172a; }
-                .pdf-md h3 { font-size: 15px; font-weight: 700; margin: 12px 0 4px; color: #0f172a; }
-                .pdf-md p  { margin: 0 0 10px 0; }
-                .pdf-md strong { font-weight: 700; }
-                .pdf-md em { font-style: italic; }
-                .pdf-md ul, .pdf-md ol { margin: 0 0 10px 24px; padding: 0; }
-                .pdf-md li { margin: 0 0 4px 0; }
-                .pdf-md code { font-family: ui-monospace, monospace; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; font-size: 0.9em; }
-                .pdf-md blockquote { margin: 0 0 10px 0; padding: 4px 12px; border-left: 3px solid #cbd5e1; color: #475569; }
-                .pdf-md a { color: #2563eb; text-decoration: underline; }
-                .pdf-md hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
-            `;
-            wrapper.appendChild(style);
-            wrapper.appendChild(body);
-            document.body.appendChild(wrapper);
-
-            try {
-                // Wait for fonts and a layout flush so html2canvas captures
-                // the fully laid-out element.
-                if ((document as any).fonts?.ready) {
-                    try { await (document as any).fonts.ready; } catch { /* noop */ }
-                }
-                await new Promise<void>(r => requestAnimationFrame(() => r()));
-
-                const opt = {
-                    margin: [10, 15, 10, 15] as [number, number, number, number],
-                    filename: `${baseName}_transcript.pdf`,
-                    image: { type: 'jpeg' as const, quality: 0.95 },
-                    html2canvas: {
-                        scale: 2,
-                        useCORS: true,
-                        backgroundColor: '#ffffff',
-                        windowWidth: wrapper.scrollWidth,
-                    },
-                    jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const },
-                    pagebreak: { mode: ['css', 'legacy'] }
-                };
-
-                await html2pdf().set(opt).from(wrapper).save();
-            } catch (err) {
-                console.error('PDF export failed:', err);
-            } finally {
-                if (wrapper.parentNode) wrapper.parentNode.removeChild(wrapper);
-            }
+            renderMarkdownToPdf(fileName, content).save(`${baseName}_transcript.pdf`);
             return;
         }
 
