@@ -9,6 +9,7 @@ import { TranscriptModal } from './components/TranscriptModal';
 import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult, DocumentFile } from './types';
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
+import { APP_VERSION } from './version';
 import { GoogleGenAI } from "@google/genai";
 import mammoth from 'mammoth';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -55,7 +56,7 @@ const App: React.FC = () => {
   const [templates, setTemplates] = useState<ProcessTemplate[]>([]);
 
   // Transcript Modal State
-  const [viewingTranscript, setViewingTranscript] = useState<{ id: string, name: string, content: string } | null>(null);
+  const [viewingTranscript, setViewingTranscript] = useState<{ id: string, name: string, content: string, source: 'audio' | 'document' } | null>(null);
   const [isProcessingTranscript, setIsProcessingTranscript] = useState(false);
 
   // Processed Results State
@@ -567,8 +568,9 @@ Reglas estrictas:
     }
   };
 
-  const handleProcessText = async (template: ProcessTemplate) => {
+  const handleProcessText = async (template: ProcessTemplate, keepOriginal: boolean = true) => {
     if (!viewingTranscript || !apiKey) return;
+    const source = viewingTranscript;
     setIsProcessingTranscript(true);
     try {
       const ai = new GoogleGenAI({ apiKey });
@@ -578,7 +580,7 @@ Reglas estrictas:
           {
             role: 'user',
             parts: [
-              { text: `Background Text:\n${viewingTranscript.content}\n\nTask (Responder en el idioma e instrucciones del prompt): ${template.prompt}` }
+              { text: `Background Text:\n${source.content}\n\nTask (Responder en el idioma e instrucciones del prompt): ${template.prompt}` }
             ]
           }
         ]
@@ -586,7 +588,7 @@ Reglas estrictas:
 
       const newResult: ProcessedResult = {
         id: Math.random().toString(36).substring(7),
-        audioFileName: viewingTranscript.name,
+        audioFileName: source.name,
         templateName: template.name,
         result: response.text,
         timestamp: Date.now()
@@ -595,6 +597,15 @@ Reglas estrictas:
       setProcessedResults(prev => [newResult, ...prev]);
       setViewingTranscript(null); // Close transcript modal
       setViewingProcessed(newResult); // Open processed result viewer
+
+      if (!keepOriginal) {
+        if (source.source === 'audio') {
+          removeFile(source.id, 'audio');
+        } else {
+          removeFile(source.id, 'document');
+        }
+      }
+
       toast.success("Processing complete");
     } catch (err: any) {
       console.error("Processing Error", err);
@@ -638,7 +649,8 @@ Reglas estrictas:
       setViewingTranscript({
         id: targetFile.id,
         name: targetFile.name,
-        content: targetFile.transcriptionResult
+        content: targetFile.transcriptionResult,
+        source: 'audio'
       });
     }
   };
@@ -649,7 +661,8 @@ Reglas estrictas:
       setViewingTranscript({
         id: doc.id,
         name: doc.name,
-        content: doc.content
+        content: doc.content,
+        source: 'document'
       });
     }
   };
@@ -900,7 +913,7 @@ Reglas estrictas:
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V0.3.11</p>
+        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V{APP_VERSION}</p>
       </footer>
     </div>
   );

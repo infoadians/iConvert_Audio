@@ -6,6 +6,8 @@ import { PROCESSING_TEMPLATES, TemplateCategory } from '../data/templates';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { ZoomIn, ZoomOut, X, FileText, Download, Copy, Play, ChevronRight, ChevronDown, Loader2, Send, Cpu, Radio } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
@@ -158,7 +160,7 @@ interface TranscriptModalProps {
     fileName: string;
     content: string;
     templates: ProcessTemplate[];
-    onProcess?: (template: ProcessTemplate) => void;
+    onProcess?: (template: ProcessTemplate, keepOriginal: boolean) => void;
     isProcessing: boolean;
     t: any;
 }
@@ -172,6 +174,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
     const [menuView, setMenuView] = useState<'main' | 'custom' | 'standard'>('main');
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [processingStep, setProcessingStep] = useState(0);
+    const [keepOriginal, setKeepOriginal] = useState(true);
 
     const pdfContentRef = useRef<HTMLDivElement>(null);
 
@@ -303,10 +306,23 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                 <div className="border-t p-4 bg-background overflow-x-auto">
                     <div className="flex items-center justify-center gap-3">
                         {onProcess && (
-                            <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={toggleMenu} disabled={isProcessing}>
-                                <Play className="mr-2 h-4 w-4" />
-                                {t.process}
-                            </Button>
+                            <>
+                                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4" onClick={toggleMenu} disabled={isProcessing}>
+                                    <Play className="mr-2 h-4 w-4" />
+                                    {t.process}
+                                </Button>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    <Switch
+                                        id="keep-original"
+                                        checked={keepOriginal}
+                                        onCheckedChange={setKeepOriginal}
+                                        disabled={isProcessing}
+                                    />
+                                    <Label htmlFor="keep-original" className="text-xs cursor-pointer whitespace-nowrap">
+                                        {t.keepOriginal || 'Keep Original'}
+                                    </Label>
+                                </div>
+                            </>
                         )}
 
                         {isMenuOpen && (
@@ -358,7 +374,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                                             key={tmp.id}
                                                             variant="ghost"
                                                             className="w-full justify-start text-sm h-auto py-3 px-4 border-b last:border-0"
-                                                            onClick={() => { onProcess(tmp); setIsMenuOpen(false); }}
+                                                            onClick={() => { onProcess(tmp, keepOriginal); setIsMenuOpen(false); }}
                                                         >
                                                             {tmp.name}
                                                         </Button>
@@ -390,7 +406,7 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
                                                                         key={t.id}
                                                                         variant="ghost"
                                                                         className="w-full justify-start text-sm h-auto py-3 px-4 whitespace-normal text-left hover:bg-muted/10 rounded-none"
-                                                                        onClick={() => { onProcess(t); setIsMenuOpen(false); }}
+                                                                        onClick={() => { onProcess(t, keepOriginal); setIsMenuOpen(false); }}
                                                                     >
                                                                         <div className="flex flex-col gap-1">
                                                                             <span className="font-medium text-primary">{t.name}</span>
