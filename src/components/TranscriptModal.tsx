@@ -1,6 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { jsPDF } from 'jspdf';
+// @ts-ignore - html2pdf.js types are minimal
+import html2pdf from 'html2pdf.js';
 import { ProcessTemplate } from '../types';
 import { PROCESSING_TEMPLATES, TemplateCategory } from '../data/templates';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -65,43 +66,58 @@ export const TranscriptModal: React.FC<TranscriptModalProps> = ({
 
     const handleDownload = (format: 'txt' | 'md' | 'pdf' = 'txt') => {
         if (format === 'pdf') {
-            const doc = new jsPDF();
+            // Render the rendered Markdown DOM to PDF so headings/bold/lists
+            // appear formatted instead of raw "##" / "**" syntax.
+            const baseName = fileName.split('.')[0];
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'padding:24px;font-family:Inter,sans-serif;color:#0f172a;background:#ffffff;line-height:1.5;font-size:12pt;width:180mm;';
+            const title = document.createElement('h1');
+            title.textContent = fileName;
+            title.style.cssText = 'font-size:18pt;font-weight:700;margin:0 0 16px 0;border-bottom:1px solid #cbd5e1;padding-bottom:8px;';
+            wrapper.appendChild(title);
 
-            // Set font properties
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(11);
+            const body = document.createElement('div');
+            if (pdfContentRef.current) {
+                body.innerHTML = pdfContentRef.current.innerHTML;
+            } else {
+                body.textContent = content;
+            }
+            // Inline minimal markdown styling so html2canvas picks it up.
+            const style = document.createElement('style');
+            style.textContent = `
+                .pdf-md h1 { font-size: 16pt; font-weight: 700; margin: 14px 0 8px; }
+                .pdf-md h2 { font-size: 14pt; font-weight: 700; margin: 12px 0 6px; }
+                .pdf-md h3 { font-size: 12pt; font-weight: 700; margin: 10px 0 4px; }
+                .pdf-md p  { margin: 0 0 8px 0; }
+                .pdf-md strong { font-weight: 700; }
+                .pdf-md em { font-style: italic; }
+                .pdf-md ul, .pdf-md ol { margin: 0 0 8px 20px; padding: 0; }
+                .pdf-md li { margin: 0 0 4px 0; }
+                .pdf-md code { font-family: monospace; background: #f1f5f9; padding: 1px 4px; border-radius: 3px; }
+                .pdf-md blockquote { margin: 0 0 8px 0; padding: 4px 12px; border-left: 3px solid #cbd5e1; color: #475569; }
+            `;
+            wrapper.appendChild(style);
+            body.className = 'pdf-md';
+            wrapper.appendChild(body);
 
-            // Split text to fit page width (A4 width is ~210mm, leaving margins)
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const margin = 15;
-            const maxLineWidth = pageWidth - (margin * 2);
-            const lineHeight = 6;
+            // Offscreen so it renders at the desired width without affecting the modal.
+            wrapper.style.position = 'fixed';
+            wrapper.style.left = '-10000px';
+            wrapper.style.top = '0';
+            document.body.appendChild(wrapper);
 
-            const splitText = doc.splitTextToSize(content, maxLineWidth);
+            const opt = {
+                margin: [10, 15, 10, 15] as [number, number, number, number],
+                filename: `${baseName}_transcript.pdf`,
+                image: { type: 'jpeg' as const, quality: 0.95 },
+                html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+                jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const },
+                pagebreak: { mode: ['css', 'legacy'] }
+            };
 
-            let cursorY = margin;
-
-            // Title
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(14);
-            doc.text(fileName, margin, cursorY);
-            cursorY += 10;
-
-            // Content
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(11);
-
-            splitText.forEach((line: string) => {
-                if (cursorY > pageHeight - margin) {
-                    doc.addPage();
-                    cursorY = margin;
-                }
-                doc.text(line, margin, cursorY);
-                cursorY += lineHeight;
+            html2pdf().set(opt).from(wrapper).save().finally(() => {
+                document.body.removeChild(wrapper);
             });
-
-            doc.save(`${fileName.split('.')[0]}_transcript.pdf`);
             return;
         }
 
