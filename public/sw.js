@@ -1,4 +1,4 @@
-const CACHE_NAME = 'iconvert-v1.7';
+const CACHE_NAME = 'iconvert-v1.8';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -30,20 +30,28 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Use a Network First strategy for all requests
+  const req = event.request;
+
+  // Don't touch non-GET requests.
+  if (req.method !== 'GET') return;
+
+  // Don't intercept cross-origin requests (e.g. ffmpeg-core from jsdelivr,
+  // Gemini API, Google fonts). Letting them go directly to the network avoids
+  // SW-level CORS/COEP issues that can cause "Engine Connection Lost" on
+  // Safari / iPad PWA.
+  const url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+
+  // Network-first for same-origin assets, fall back to cache when offline.
   event.respondWith(
-    fetch(event.request)
+    fetch(req)
       .then((response) => {
-        // If successful, clone the response and store it in the cache
         const responseClone = response.clone();
         caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
+          cache.put(req, responseClone).catch(() => {});
         });
         return response;
       })
-      .catch(() => {
-        // If network fails, try the cache
-        return caches.match(event.request);
-      })
+      .catch(() => caches.match(req))
   );
 });

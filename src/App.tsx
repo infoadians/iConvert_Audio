@@ -752,6 +752,11 @@ Reglas estrictas:
               <AlertTitle>{t.engineError}</AlertTitle>
               <AlertDescription>
                 {t.engineDesc}
+                {initError && (
+                  <pre className="mt-2 max-h-32 overflow-auto whitespace-pre-wrap break-words rounded bg-destructive/10 p-2 text-[11px] font-mono">
+                    {initError}
+                  </pre>
+                )}
                 <div className="mt-4">
                   <Button onClick={() => window.location.reload()} className="bg-primary text-primary-foreground hover:bg-primary/90">
                     <RefreshCw className="mr-2 h-4 w-4" />
@@ -895,7 +900,7 @@ Reglas estrictas:
         )}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V0.3.8</p>
+        <p className="font-mono text-xs">iConvert Audio & Transcribe, by Bella Labs, V0.3.9</p>
       </footer>
     </div>
   );

@@ -40,9 +40,13 @@ export class FFmpegManager {
       });
 
       this.isLoaded = true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Detailed FFmpeg Load Error:', error);
-      throw new Error('Audio engine initialization failed. This is often due to network restrictions or an incompatible browser environment.');
+      const cause = error?.message || String(error);
+      const isolated = (self as any).crossOriginIsolated;
+      throw new Error(
+        `Audio engine failed to load (crossOriginIsolated=${isolated}). ${cause}`
+      );
     }
   }
 
