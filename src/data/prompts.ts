@@ -12,15 +12,15 @@ Reglas estrictas:
 6.  **SALIDA:** Entrega SOLAMENTE el texto de la transcripción. NO incluyas introducciones, encabezados, ni notas finales. Empieza directamente con el primer hablante o la primera frase.`;
 
 // Models offered in the Settings → Model selector. Aliases (*-latest)
-// auto-track Google's newest stable release; specific versions are
-// pinned. "custom" lets the user type any model id (e.g. gemini-3.1-pro).
+// auto-track Google's newest stable release; specific 3.x versions are
+// pinned. The "Custom model id" option in Settings lets the user type
+// any other model id (e.g. a future gemini-3.x variant).
 export type ModelOption = { id: string; label: string };
 export const AVAILABLE_MODELS: ModelOption[] = [
     { id: 'gemini-flash-latest', label: 'Flash (Latest)' },
     { id: 'gemini-pro-latest', label: 'Pro (Latest)' },
-    { id: 'gemini-2.5-flash', label: 'Flash 2.5' },
-    { id: 'gemini-2.5-pro', label: 'Pro 2.5' },
-    { id: 'gemini-3-pro-preview', label: 'Pro 3 (Preview)' },
+    { id: 'gemini-3.1-flash', label: 'Flash 3.1' },
+    { id: 'gemini-3.1-pro', label: 'Pro 3.1' },
 ];
 export const DEFAULT_MODEL = 'gemini-flash-latest';
 

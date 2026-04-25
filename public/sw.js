@@ -1,15 +1,33 @@
-const CACHE_NAME = 'iconvert-v1.9';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/bella-logo.png'
+// Bumping the cache name forces clients to upgrade and dump v1.x.
+const CACHE_NAME = 'iconvert-v2.0';
+
+// FFmpeg core is loaded from jsDelivr; pre-caching makes cold-starts on
+// iPad PWA feel near-instant by serving it from disk instead of refetching
+// ~30MB on every launch (iOS evicts PWAs from memory aggressively).
+const FFMPEG_BASE = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.4/dist/esm';
+const FFMPEG_ASSETS = [
+  `${FFMPEG_BASE}/ffmpeg-core.js`,
+  `${FFMPEG_BASE}/ffmpeg-core.wasm`,
+  `${FFMPEG_BASE}/ffmpeg-core.worker.js`,
 ];
+
+const APP_SHELL = ['/', '/index.html', '/bella-logo.png'];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
-  );
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    // App shell must succeed; ffmpeg precache is best-effort.
+    await cache.addAll(APP_SHELL);
+    await Promise.all(
+      FFMPEG_ASSETS.map(async (url) => {
+        try {
+          const res = await fetch(url, { mode: 'cors', credentials: 'omit' });
+          if (res.ok) await cache.put(url, res);
+        } catch (_) { /* network may be flaky on first install — ok */ }
+      })
+    );
+  })());
 });
 
 self.addEventListener('activate', (event) => {
@@ -31,18 +49,37 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-
-  // Don't touch non-GET requests.
   if (req.method !== 'GET') return;
 
-  // Don't intercept cross-origin requests (e.g. ffmpeg-core from jsdelivr,
-  // Gemini API, Google fonts). Letting them go directly to the network avoids
-  // SW-level CORS/COEP issues that can cause "Engine Connection Lost" on
-  // Safari / iPad PWA.
   const url = new URL(req.url);
-  if (url.origin !== self.location.origin) return;
+  const sameOrigin = url.origin === self.location.origin;
+  const isFfmpeg = url.origin === 'https://cdn.jsdelivr.net'
+    && url.pathname.includes('/@ffmpeg/core');
 
-  // Network-first for same-origin assets, fall back to cache when offline.
+  // FFmpeg core: cache-first so cold launches are instant. Refresh in
+  // the background if a network response is available.
+  if (isFfmpeg) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(req);
+      if (cached) {
+        // Refresh in background, ignore failures.
+        fetch(req, { mode: 'cors', credentials: 'omit' })
+          .then(res => { if (res.ok) cache.put(req, res).catch(() => {}); })
+          .catch(() => {});
+        return cached;
+      }
+      const res = await fetch(req, { mode: 'cors', credentials: 'omit' });
+      if (res.ok) cache.put(req, res.clone()).catch(() => {});
+      return res;
+    })());
+    return;
+  }
+
+  // Anything else cross-origin (Gemini API, fonts, etc): pass through.
+  if (!sameOrigin) return;
+
+  // Same-origin: network-first, fall back to cache offline.
   event.respondWith(
     fetch(req)
       .then((response) => {
