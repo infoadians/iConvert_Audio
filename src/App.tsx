@@ -312,6 +312,31 @@ const App: React.FC = () => {
     }
   };
 
+  const handleGenerateProcessingPrompt = async (idea: string): Promise<string> => {
+    if (!apiKey) throw new Error('API Key required');
+    if (!idea.trim()) throw new Error('Idea is empty');
+    const ai = new GoogleGenAI({ apiKey });
+    const meta = `You are an expert prompt engineer. Write a complete, ready-to-use processing prompt that can be applied to a transcript or document inside this app's "process" template system.
+
+Requirements for the prompt you generate:
+- Open with a clear role (e.g. "Act as a ...").
+- Define the task and the expected output format (lists, sections, headings, etc.).
+- Include any necessary constraints, tone, and style.
+- Write the prompt in the same language as the user's idea below.
+- Be self-contained: do NOT reference "the transcript" generically — the user pastes content; the prompt should instruct what to do with the provided text.
+- Output ONLY the prompt text, with no preamble, no markdown code fences, no commentary.
+
+User's idea (in their own words):
+"""
+${idea.trim()}
+"""`;
+    const response = await ai.models.generateContent({
+      model: 'gemini-flash-latest',
+      contents: [{ role: 'user', parts: [{ text: meta }] }]
+    });
+    return (response.text || '').trim();
+  };
+
   const getAudioDuration = (file: File): Promise<number> => {
     return new Promise((resolve) => {
       const audio = new Audio();
@@ -736,6 +761,7 @@ const App: React.FC = () => {
         onSaveFontScale={handleSaveFontScale}
         transcriptionPrompt={transcriptionPrompt}
         onSaveTranscriptionPrompt={handleSaveTranscriptionPrompt}
+        onGeneratePrompt={handleGenerateProcessingPrompt}
         t={t}
       />
 

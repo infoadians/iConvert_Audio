@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages, RotateCcw, Eye, EyeOff, Sparkles, Copy, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 import { APP_VERSION } from '../version';
@@ -33,6 +33,7 @@ interface SettingsModalProps {
     onSaveFontScale: (scale: number) => void;
     transcriptionPrompt: string;
     onSaveTranscriptionPrompt: (prompt: string) => void;
+    onGeneratePrompt: (idea: string) => Promise<string>;
     t: any;
 }
 
@@ -40,7 +41,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     isOpen, onClose, lang, setLang, isDark, setIsDark,
     primaryHue, setPrimaryHue, apiKey, onSaveKey,
     templates, onSaveTemplates, fontScale, onSaveFontScale,
-    transcriptionPrompt, onSaveTranscriptionPrompt, t
+    transcriptionPrompt, onSaveTranscriptionPrompt, onGeneratePrompt, t
 }) => {
     const [localKey, setLocalKey] = useState(apiKey);
 
@@ -58,9 +59,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     const [isCustomExpanded, setIsCustomExpanded] = useState(false);
     const [isStandardExpanded, setIsStandardExpanded] = useState(false);
     const [isPromptExpanded, setIsPromptExpanded] = useState(false);
+    const [isBuilderExpanded, setIsBuilderExpanded] = useState(false);
 
     // Transcription prompt local edit buffer
     const [localPrompt, setLocalPrompt] = useState(transcriptionPrompt);
+
+    // Prompt Builder state
+    const [builderIdea, setBuilderIdea] = useState('');
+    const [builderOutput, setBuilderOutput] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [builderError, setBuilderError] = useState<string | null>(null);
+    const [builderCopied, setBuilderCopied] = useState(false);
+
+    const handleGenerate = async () => {
+        if (!apiKey) {
+            setBuilderError(t.apiKeyMissing || 'API Key required');
+            return;
+        }
+        if (!builderIdea.trim()) return;
+        setBuilderError(null);
+        setIsGenerating(true);
+        try {
+            const result = await onGeneratePrompt(builderIdea);
+            setBuilderOutput(result);
+        } catch (err: any) {
+            setBuilderError(err?.message || 'Generation failed');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleCopyOutput = async () => {
+        if (!builderOutput) return;
+        try {
+            await navigator.clipboard.writeText(builderOutput);
+            setBuilderCopied(true);
+            setTimeout(() => setBuilderCopied(false), 2000);
+        } catch {
+            /* noop */
+        }
+    };
 
 
     useEffect(() => {
@@ -266,6 +304,75 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                         {t.restoreDefault}
                                     </Button>
                                 </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="border-t my-0.5" />
+
+                    {/* PROMPT BUILDER */}
+                    <div className="space-y-1">
+                        <div className="flex items-center gap-2 cursor-pointer p-1 hover:bg-muted/30 rounded" onClick={() => setIsBuilderExpanded(!isBuilderExpanded)}>
+                            {isBuilderExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                            <Sparkles className="h-3.5 w-3.5 text-primary" />
+                            <h4 className="text-sm font-bold leading-none text-foreground tracking-wide">{t.promptBuilder}</h4>
+                        </div>
+                        {isBuilderExpanded && (
+                            <div className="space-y-2 pl-2">
+                                <p className="text-xs text-muted-foreground">{t.promptBuilderDesc}</p>
+                                {!apiKey && (
+                                    <p className="text-xs text-destructive">{t.apiKeyMissing}</p>
+                                )}
+                                <div className="space-y-1">
+                                    <Label className="text-xs">{t.ideaLabel}</Label>
+                                    <textarea
+                                        value={builderIdea}
+                                        onChange={(e) => setBuilderIdea(e.target.value)}
+                                        placeholder={t.ideaPlaceholder}
+                                        spellCheck={false}
+                                        className="flex min-h-[80px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                    />
+                                </div>
+                                <Button
+                                    size="sm"
+                                    onClick={handleGenerate}
+                                    disabled={!apiKey || !builderIdea.trim() || isGenerating}
+                                    className={cn("h-8 text-xs", (!apiKey || !builderIdea.trim()) ? "opacity-50" : "")}
+                                >
+                                    {isGenerating ? (
+                                        <><Loader2 className="mr-2 h-3 w-3 animate-spin" />{t.generating}</>
+                                    ) : (
+                                        <><Sparkles className="mr-2 h-3 w-3" />{t.generate}</>
+                                    )}
+                                </Button>
+                                {builderError && (
+                                    <p className="text-xs text-destructive">{builderError}</p>
+                                )}
+                                {(isGenerating || builderOutput) && (
+                                    <div className="space-y-1 pt-1">
+                                        <Label className="text-xs">{t.suggestedPrompt}</Label>
+                                        <textarea
+                                            value={builderOutput}
+                                            onChange={(e) => setBuilderOutput(e.target.value)}
+                                            spellCheck={false}
+                                            placeholder={isGenerating ? t.generating : ''}
+                                            disabled={isGenerating}
+                                            className="flex min-h-[160px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-xs font-mono leading-relaxed shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={handleCopyOutput}
+                                                disabled={!builderOutput || isGenerating}
+                                                className="h-8 text-xs"
+                                            >
+                                                <Copy className="mr-2 h-3 w-3" />
+                                                {builderCopied ? t.copied : t.copyPrompt}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
