@@ -19,7 +19,6 @@ export type ModelOption = { id: string; label: string };
 export const AVAILABLE_MODELS: ModelOption[] = [
     { id: 'gemini-3.8-flash', label: 'Flash 3.8' },
     { id: 'gemini-flash-latest', label: 'Flash (Latest)' },
-    { id: 'gemini-3.1-pro-preview', label: 'Pro 3.1 (Preview)' },
     { id: 'gemini-4-argon', label: 'Gemini 4 Argon' },
 ];
 export const DEFAULT_MODEL = 'gemini-3.8-flash';
@@ -27,6 +26,7 @@ export const DEFAULT_MODEL = 'gemini-3.8-flash';
 // IDs offered by earlier versions that don't exist (or were shut down);
 // a stored selection of any of these is reset to DEFAULT_MODEL on load.
 export const RETIRED_MODELS = [
+    'gemini-3.1-pro-preview',
     'gemini-3.1-flash',
     'gemini-3.1-pro',
     'gemini-pro-latest',
