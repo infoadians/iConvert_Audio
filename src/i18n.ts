@@ -105,6 +105,10 @@ export const translations = {
     customModelPlaceholder: 'e.g. gemini-3.8-flash',
     updateApp: 'Update',
     updatingApp: 'Updating...',
+    transcriptionModel: 'Transcription Model',
+    transcriptionModelDesc: 'Model used to turn audio into text. Template processing always uses the AI Model.',
+    sameAsAiModel: 'Same as AI Model',
+    transcriptionPromptUnused: 'Gemini 3.5 Transcribe is selected as the transcription model; it does not use this prompt.',
     infoModal: {
       title: 'About Transcribo',
       description: 'Transcribe audio to text with AI. Use smart templates to analyze the content of your transcriptions and of your documents securely.',
@@ -224,6 +228,10 @@ export const translations = {
     customModelPlaceholder: 'ej. gemini-3.8-flash',
     updateApp: 'Actualizar',
     updatingApp: 'Actualizando...',
+    transcriptionModel: 'Modelo de Transcripción',
+    transcriptionModelDesc: 'Modelo usado para convertir audio en texto. El procesamiento con plantillas siempre usa el Modelo de IA.',
+    sameAsAiModel: 'Igual que el Modelo de IA',
+    transcriptionPromptUnused: 'Gemini 3.5 Transcribe está seleccionado como modelo de transcripción; no usa este prompt.',
     infoModal: {
       title: 'Acerca de Transcribo',
       description: 'Transcribe audio a texto con IA. Utiliza plantillas inteligentes para analizar el contenido de tus transcripciones y de tus documentos de forma segura.',

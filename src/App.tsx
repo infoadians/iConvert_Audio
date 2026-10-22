@@ -8,6 +8,7 @@ import { SettingsModal } from './components/SettingsModal';
 import { TranscriptModal } from './components/TranscriptModal';
 import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult, DocumentFile } from './types';
 import { FFmpegManager } from './services/ffmpegService';
+import { TRANSCRIBE_MODEL, transcribeWithTranscribeModel } from './services/transcribeService';
 import { translations, Language } from './i18n';
 import { APP_VERSION } from './version';
 import { DEFAULT_TRANSCRIPTION_PROMPT, DEFAULT_MODEL, RETIRED_MODELS } from './data/prompts';
@@ -56,6 +57,8 @@ const App: React.FC = () => {
   const [apiKeyPaid, setApiKeyPaid] = useState('');
   const [activeApiKey, setActiveApiKey] = useState<ApiKeyTier>('free');
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_MODEL);
+  // '' = transcribe with the AI Model above; otherwise a dedicated model id.
+  const [transcriptionModel, setTranscriptionModel] = useState<string>('');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const apiKey = activeApiKey === 'free' ? apiKeyFree : apiKeyPaid;
@@ -183,6 +186,9 @@ const App: React.FC = () => {
     } else if (storedModel) {
       setSelectedModel(storedModel);
     }
+
+    const storedTranscriptionModel = localStorage.getItem('iconvert_transcription_model');
+    if (storedTranscriptionModel) setTranscriptionModel(storedTranscriptionModel);
 
     const storedTemplates = localStorage.getItem('iconvert_templates');
     if (storedTemplates) {
@@ -322,6 +328,12 @@ const App: React.FC = () => {
   const handleSetActiveApiKey = (tier: ApiKeyTier) => {
     setActiveApiKey(tier);
     localStorage.setItem('iconvert_active_api_key', tier);
+  };
+
+  const handleSetTranscriptionModel = (model: string) => {
+    setTranscriptionModel(model);
+    if (model) localStorage.setItem('iconvert_transcription_model', model);
+    else localStorage.removeItem('iconvert_transcription_model');
   };
 
   const handleSetModel = (model: string) => {
@@ -612,23 +624,29 @@ ${idea.trim()}
         }
       }
 
-      const base64Data = await fileToBase64(blobToProcess);
-      const ai = new GoogleGenAI({ apiKey });
+      let text: string | undefined;
+      if (transcriptionModel === TRANSCRIBE_MODEL) {
+        text = await transcribeWithTranscribeModel(
+          apiKey, blobToProcess, mimeType, targetFile.duration, lang === 'es' ? 'Hablante' : 'Speaker'
+        );
+      } else {
+        const base64Data = await fileToBase64(blobToProcess);
+        const ai = new GoogleGenAI({ apiKey });
 
-      const response = await ai.models.generateContent({
-        model: selectedModel,
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { inlineData: { mimeType: mimeType, data: base64Data } },
-              { text: transcriptionPrompt }
-            ]
-          }
-        ]
-      });
-
-      const text = response.text;
+        const response = await ai.models.generateContent({
+          model: selectedModel,
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                { inlineData: { mimeType: mimeType, data: base64Data } },
+                { text: transcriptionPrompt }
+              ]
+            }
+          ]
+        });
+        text = response.text;
+      }
 
       setFiles(prev => prev.map(f =>
         f.id === id ? { ...f, transcriptionStatus: 'done', transcriptionResult: text } : f
@@ -803,6 +821,8 @@ ${idea.trim()}
         onSetActiveApiKey={handleSetActiveApiKey}
         selectedModel={selectedModel}
         onSetModel={handleSetModel}
+        transcriptionModel={transcriptionModel}
+        onSetTranscriptionModel={handleSetTranscriptionModel}
         templates={templates}
         onSaveTemplates={handleSaveTemplates}
         fontScale={fontScale}

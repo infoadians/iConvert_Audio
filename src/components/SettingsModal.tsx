@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 import { APP_VERSION } from '../version';
 import { DEFAULT_TRANSCRIPTION_PROMPT, AVAILABLE_MODELS } from '../data/prompts';
+import { TRANSCRIBE_MODEL } from '../services/transcribeService';
 
 type ApiKeyTier = 'free' | 'paid';
 
@@ -34,6 +35,8 @@ interface SettingsModalProps {
     onSetActiveApiKey: (tier: ApiKeyTier) => void;
     selectedModel: string;
     onSetModel: (model: string) => void;
+    transcriptionModel: string;
+    onSetTranscriptionModel: (model: string) => void;
     templates: ProcessTemplate[];
     onSaveTemplates: (templates: ProcessTemplate[]) => void;
     fontScale: number;
@@ -48,7 +51,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     isOpen, onClose, lang, setLang, isDark, setIsDark,
     primaryHue, setPrimaryHue,
     apiKeyFree, apiKeyPaid, activeApiKey, onSaveKey, onSetActiveApiKey,
-    selectedModel, onSetModel,
+    selectedModel, onSetModel, transcriptionModel, onSetTranscriptionModel,
     templates, onSaveTemplates, fontScale, onSaveFontScale,
     transcriptionPrompt, onSaveTranscriptionPrompt, onGeneratePrompt, t
 }) => {
@@ -413,6 +416,31 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                                 </div>
                             )}
                         </div>
+
+                        {/* Transcription model */}
+                        <div className="space-y-1 pt-1">
+                            <Label className="text-xs">{t.transcriptionModel}</Label>
+                            <p className="text-[11px] text-muted-foreground">{t.transcriptionModelDesc}</p>
+                            <Select
+                                value={transcriptionModel || '__same__'}
+                                onValueChange={(val) => onSetTranscriptionModel(val === '__same__' ? '' : val)}
+                            >
+                                <SelectTrigger className="h-8 text-xs">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="__same__" className="text-xs">
+                                        {t.sameAsAiModel}
+                                    </SelectItem>
+                                    <SelectItem value={TRANSCRIBE_MODEL} className="text-xs">
+                                        <span className="flex items-center gap-2">
+                                            <span>Gemini 3.5 Transcribe</span>
+                                            <span className="text-[10px] font-mono text-muted-foreground">{TRANSCRIBE_MODEL}</span>
+                                        </span>
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div className="border-t my-0.5" />
@@ -433,6 +461,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                         {isPromptExpanded && (
                             <div className="space-y-2 pl-2">
                                 <p className="text-xs text-muted-foreground">{t.transcriptionPromptDesc}</p>
+                                {transcriptionModel === TRANSCRIBE_MODEL && (
+                                    <p className="text-xs text-amber-700 dark:text-amber-400">{t.transcriptionPromptUnused}</p>
+                                )}
                                 <textarea
                                     value={localPrompt}
                                     onChange={(e) => setLocalPrompt(e.target.value)}
