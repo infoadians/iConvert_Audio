@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
-import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages, RotateCcw, Eye, EyeOff, Sparkles, Copy, Loader2 } from 'lucide-react';
+import { Trash2, Edit2, Plus, Minus, Save, ChevronRight, ChevronDown, X, Languages, RotateCcw, Eye, EyeOff, Sparkles, Copy, Loader2, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Card } from "@/components/ui/card";
 import { APP_VERSION } from '../version';
@@ -184,16 +184,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     // Group Standard Templates by Category
     const categories: TemplateCategory[] = ['Generales', 'Gestión y Negocios', 'Contenido y Comunicación', 'Análisis y Estudio'];
 
+    // Manual app update: ask the service worker to fetch the newest sw.js,
+    // then reload. Same-origin assets are network-first in the SW, so the
+    // reload picks up the latest deployed index.html and bundles. The
+    // FFmpeg precache is left intact so it doesn't re-download ~30MB.
+    const [isUpdating, setIsUpdating] = useState(false);
+    const handleAppUpdate = async () => {
+        setIsUpdating(true);
+        try {
+            if ('serviceWorker' in navigator) {
+                const reg = await navigator.serviceWorker.getRegistration();
+                if (reg) await reg.update();
+            }
+        } catch (err) {
+            console.warn('SW update check failed:', err);
+        }
+        window.location.reload();
+    };
+
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="fixed inset-0 z-50 w-screen h-screen max-w-none m-0 rounded-none flex flex-col gap-0 p-0 bg-background !translate-x-0 !translate-y-0 !top-0 !left-0 [&>button]:hidden">
                 <DialogHeader className="p-4 border-b">
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="flex items-baseline gap-2">
-                            <span>{t.settings}</span>
-                            <span className="text-xs font-mono font-normal text-muted-foreground">(v{APP_VERSION})</span>
-                        </DialogTitle>
+                        <div className="flex items-center gap-2">
+                            <DialogTitle className="flex items-baseline gap-2">
+                                <span>{t.settings}</span>
+                                <span className="text-xs font-mono font-normal text-muted-foreground">(v{APP_VERSION})</span>
+                            </DialogTitle>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleAppUpdate}
+                                disabled={isUpdating}
+                                className="h-7 px-2 text-xs"
+                            >
+                                <RefreshCw className={cn("mr-1.5 h-3 w-3", isUpdating && "animate-spin")} />
+                                {isUpdating ? t.updatingApp : t.updateApp}
+                            </Button>
+                        </div>
                         <Button variant="ghost" size="icon" onClick={onClose}>
                             <X className="h-5 w-5" />
                         </Button>

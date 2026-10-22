@@ -102,7 +102,9 @@ export const translations = {
     aiModel: 'AI Model',
     aiModelDesc: 'Model used for transcription and template processing.',
     customModel: 'Custom model id',
-    customModelPlaceholder: 'e.g. gemini-3.1-pro',
+    customModelPlaceholder: 'e.g. gemini-3.8-flash',
+    updateApp: 'Update',
+    updatingApp: 'Updating...',
     infoModal: {
       title: 'About Transcribo',
       description: 'Transcribe audio to text with AI. Use smart templates to analyze the content of your transcriptions and of your documents securely.',
@@ -219,7 +221,9 @@ export const translations = {
     aiModel: 'Modelo de IA',
     aiModelDesc: 'Modelo usado para transcripción y procesamiento de plantillas.',
     customModel: 'ID de modelo personalizado',
-    customModelPlaceholder: 'ej. gemini-3.1-pro',
+    customModelPlaceholder: 'ej. gemini-3.8-flash',
+    updateApp: 'Actualizar',
+    updatingApp: 'Actualizando...',
     infoModal: {
       title: 'Acerca de Transcribo',
       description: 'Transcribe audio a texto con IA. Utiliza plantillas inteligentes para analizar el contenido de tus transcripciones y de tus documentos de forma segura.',

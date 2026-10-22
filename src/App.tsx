@@ -10,7 +10,7 @@ import { AudioFile, ConversionOptions, ProcessTemplate, ProcessedResult, Documen
 import { FFmpegManager } from './services/ffmpegService';
 import { translations, Language } from './i18n';
 import { APP_VERSION } from './version';
-import { DEFAULT_TRANSCRIPTION_PROMPT, DEFAULT_MODEL } from './data/prompts';
+import { DEFAULT_TRANSCRIPTION_PROMPT, DEFAULT_MODEL, RETIRED_MODELS } from './data/prompts';
 
 type ApiKeyTier = 'free' | 'paid';
 import { GoogleGenAI } from "@google/genai";
@@ -178,7 +178,11 @@ const App: React.FC = () => {
     }
 
     const storedModel = localStorage.getItem('iconvert_model');
-    if (storedModel) setSelectedModel(storedModel);
+    if (storedModel && RETIRED_MODELS.includes(storedModel)) {
+      localStorage.removeItem('iconvert_model');
+    } else if (storedModel) {
+      setSelectedModel(storedModel);
+    }
 
     const storedTemplates = localStorage.getItem('iconvert_templates');
     if (storedTemplates) {
