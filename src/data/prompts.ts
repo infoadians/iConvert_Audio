@@ -19,6 +19,7 @@ export type ModelOption = { id: string; label: string };
 export const AVAILABLE_MODELS: ModelOption[] = [
     { id: 'gemini-3.8-flash', label: 'Flash 3.8' },
     { id: 'gemini-flash-latest', label: 'Flash (Latest)' },
+    { id: 'gemini-3.5-flash-lite', label: 'Flash-Lite 3.5' },
     { id: 'gemini-4-argon', label: 'Gemini 4 Argon' },
 ];
 export const DEFAULT_MODEL = 'gemini-3.8-flash';
